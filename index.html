@@ -108,6 +108,45 @@
   .slot.filled::after{ content:""; }
   .tile{ border:2px solid #cfcfcf; background:#fff; cursor: grab; }
   .tile:active{ cursor:grabbing; }
+  .stepNav{
+  display:flex;
+  justify-content:center;
+  gap:16px;
+  margin-bottom:14px;
+}
+
+.step{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  border:2px solid #ccc;
+  background:#fff;
+  cursor:pointer;
+  transition:all .2s;
+}
+
+.step.locked{
+  background:#eee;
+  color:#999;
+  border-color:#ddd;
+  cursor:not-allowed;
+}
+
+.step.active{
+  background:#111;
+  color:#fff;
+  border-color:#111;
+}
+
+.step.done{
+  background:#34a853;
+  color:#fff;
+  border-color:#34a853;
+}
 
   /* ===== GAME 1: CROSSWORD ===== */
   .layout{
@@ -605,24 +644,63 @@ document.getElementById("anaCheckBtn").addEventListener("click", () => {
 const games = ["game1", "game2", "game3"];
 let currentGameIndex = 0;
 
-function showGameByIndex(idx){
-  currentGameIndex = Math.max(0, Math.min(idx, games.length - 1));
-  for(let i=0;i<games.length;i++){
-    document.getElementById(games[i]).classList.toggle("hidden", i !== currentGameIndex);
-  }
-  document.getElementById("prevBtn").disabled = (currentGameIndex === 0);
-  document.getElementById("nextBtn").disabled = (currentGameIndex === games.length - 1);
-  localStorage.setItem(STORAGE_CURRENT_GAME, games[currentGameIndex]);
-  window.scrollTo({ top: 0, behavior: "smooth" });
+function canAccess(index){
+  const done = getGamesDone();
+
+  if(index === 0) return true;
+  if(index === 1) return !!done.game1;
+  if(index === 2) return !!done.game2;
+
+  return false;
 }
 
-document.getElementById("prevBtn").addEventListener("click", () => showGameByIndex(currentGameIndex - 1));
-document.getElementById("nextBtn").addEventListener("click", () => showGameByIndex(currentGameIndex + 1));
+function renderSteps(){
+  const nav = document.getElementById("stepNav");
+  nav.innerHTML = "";
+
+  const done = getGamesDone();
+
+  games.forEach((g, i) => {
+    const step = document.createElement("div");
+    step.className = "step";
+    step.textContent = (i+1);
+
+    if(i === currentGameIndex){
+      step.classList.add("active");
+    }
+
+    if(done[g]){
+      step.classList.add("done");
+    }
+
+    if(!canAccess(i)){
+      step.classList.add("locked");
+    }else{
+      step.addEventListener("click", () => {
+        currentGameIndex = i;
+        showGame();
+      });
+    }
+
+    nav.appendChild(step);
+  });
+}
+
+function showGame(){
+  games.forEach((g,i)=>{
+    document.getElementById(g).classList.toggle("hidden", i !== currentGameIndex);
+  });
+
+  localStorage.setItem(STORAGE_CURRENT_GAME, games[currentGameIndex]);
+  renderSteps();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
 function restoreCurrentGame(){
   const saved = localStorage.getItem(STORAGE_CURRENT_GAME);
   const idx = games.indexOf(saved);
-  showGameByIndex(idx >= 0 ? idx : 0);
+  currentGameIndex = (idx >= 0 && canAccess(idx)) ? idx : 0;
+  showGame();
 }
 
 /* =========================================================
@@ -1071,4 +1149,5 @@ init();
 </script>
 </body>
 </html>
+
 
