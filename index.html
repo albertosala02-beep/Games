@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>♥ 30 Anni Bubola ♥</title>
+<title>Word Search - ANTIGUA</title>
 
 <style>
   :root{
@@ -44,12 +44,12 @@
     color:#333;
   }
 
-  /* Container relativo per griglia + overlay */
+  /* wrapper relativo per griglia + overlay */
   #gridWrap{
     position: relative;
     display: inline-block;
     margin: 14px auto;
-    touch-action:none; /* fondamentale iPhone */
+    touch-action:none; /* iPhone: evita scroll/zoom durante drag */
   }
 
   #grid{
@@ -64,7 +64,7 @@
     height: var(--cell);
     background:#fff;
     border:1px solid #cfcfcf;
-    border-radius:8px;
+    border-radius:10px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -75,7 +75,7 @@
     touch-action:none;
   }
 
-  /* Overlay SVG sopra la griglia */
+  /* overlay sopra la griglia */
   #overlay{
     position:absolute;
     inset:0;
@@ -89,12 +89,14 @@
     margin:0 auto;
     line-height: 1.9;
   }
+
   .word{
     display:inline-block;
     margin:6px 10px;
     font-weight:800;
     letter-spacing:0.4px;
   }
+
   .word.found{
     text-decoration:line-through;
     color:#777;
@@ -165,18 +167,23 @@ function setResponsiveCellSize(){
   const gap = 3;
 
   const cell = Math.floor((maxWidth - gap*(GRID_SIZE-1)) / GRID_SIZE);
-  const clamped = Math.max(26, Math.min(cell, 46));
+  const clamped = Math.max(26, Math.min(cell, 50));
 
   document.documentElement.style.setProperty("--cell", clamped + "px");
   document.documentElement.style.setProperty("--gap", gap + "px");
 
   gridEl.style.gridTemplateColumns = `repeat(${GRID_SIZE}, var(--cell))`;
 
-  // aggiorna dimensioni SVG overlay (viewBox in px reali)
   syncOverlaySize();
-  redrawFoundLines();
+  redrawFoundCapsules();
 }
+
 window.addEventListener("resize", setResponsiveCellSize);
+
+function getCellSizePx(){
+  const v = getComputedStyle(document.documentElement).getPropertyValue("--cell").trim();
+  return parseFloat(v.replace("px","")) || 34;
+}
 
 /* =========================
    BUILD UI
@@ -206,8 +213,12 @@ function buildWordList(){
   }
 }
 
+function updateProgress(){
+  progressEl.textContent = `${foundWords.size} / ${words.length}`;
+}
+
 /* =========================
-   OVERLAY SVG HELPERS
+   OVERLAY HELPERS
 ========================= */
 function syncOverlaySize(){
   const rect = gridEl.getBoundingClientRect();
@@ -217,35 +228,55 @@ function syncOverlaySize(){
 }
 
 function cellCenterPx(r, c){
-  // coordinate relative alla griglia
   const cell = document.querySelector(`.cell[data-row='${r}'][data-col='${c}']`);
   const gridRect = gridEl.getBoundingClientRect();
   const rect = cell.getBoundingClientRect();
-
   const x = (rect.left - gridRect.left) + rect.width/2;
   const y = (rect.top  - gridRect.top ) + rect.height/2;
   return {x, y};
 }
 
-function makeLine(x1,y1,x2,y2, opts={}){
+/* =========================
+   CAPSULE (solo contorno)
+========================= */
+function makeCapsuleOutline(x1, y1, x2, y2, cellPx, opts = {}) {
   const ns = "http://www.w3.org/2000/svg";
-  const line = document.createElementNS(ns, "line");
-  line.setAttribute("x1", x1);
-  line.setAttribute("y1", y1);
-  line.setAttribute("x2", x2);
-  line.setAttribute("y2", y2);
 
-  // stile “cerchiatura unica” tipo foto (contorno)
-  line.setAttribute("fill", "none");
-  line.setAttribute("stroke", opts.stroke ?? "#f5b301"); // giallo contorno
-  line.setAttribute("stroke-width", opts.width ?? "10");
-  line.setAttribute("stroke-linecap", "round");
-  line.setAttribute("stroke-linejoin", "round");
-  line.setAttribute("opacity", opts.opacity ?? "0.85");
+  const dx = x2 - x1;
+  const dy = y2 - y1;
 
-  // se vuoi SOLO contorno e non “evidenziatore pieno”:
-  // usa width più basso (6-8) e opacity più bassa (0.7)
-  return line;
+  const dist = Math.hypot(dx, dy);
+  const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+  // altezza capsula in funzione della cella (regola qui)
+  const h = (opts.heightFactor ?? 0.78) * cellPx;
+
+  // padding extra in lunghezza (regola qui)
+  const pad = (opts.lengthPadFactor ?? 0.45) * cellPx;
+
+  const w = dist + pad;
+
+  const cx = (x1 + x2) / 2;
+  const cy = (y1 + y2) / 2;
+
+  const rect = document.createElementNS(ns, "rect");
+  rect.setAttribute("x", -w / 2);
+  rect.setAttribute("y", -h / 2);
+  rect.setAttribute("width", w);
+  rect.setAttribute("height", h);
+  rect.setAttribute("rx", h / 2);
+  rect.setAttribute("ry", h / 2);
+
+  // SOLO CONTORNO
+  rect.setAttribute("fill", "transparent");
+  rect.setAttribute("stroke", opts.stroke ?? "#f5b301");
+  rect.setAttribute("stroke-width", opts.strokeWidth ?? Math.max(3, Math.round(cellPx * 0.12)));
+  rect.setAttribute("opacity", opts.opacity ?? "0.95");
+
+  rect.setAttribute("pointer-events", "none");
+  rect.setAttribute("transform", `translate(${cx} ${cy}) rotate(${angle})`);
+
+  return rect;
 }
 
 /* =========================
@@ -257,18 +288,10 @@ let startPos = null;
 let currentPos = null;
 let lockedDir = null;
 
-// preview line (solo una, mentre trascini)
-let previewSvgLine = null;
-
-// linee trovate persistenti: salviamo endpoints in coordinate griglia
-// così su resize le ridisegniamo correttamente
-const foundLineDefs = []; // {word, start:{r,c}, end:{r,c}}
+let previewShape = null; // rect preview
 
 const foundWords = new Set();
-
-function updateProgress(){
-  progressEl.textContent = `${foundWords.size} / ${words.length}`;
-}
+const foundCapsules = []; // { word, start:{r,c}, end:{r,c} }
 
 function getCellFromPoint(x, y){
   const el = document.elementFromPoint(x, y);
@@ -318,62 +341,60 @@ function wordFromCells(cells){
 }
 
 /* =========================
-   PREVIEW LINE DRAW
+   PREVIEW CAPSULE
 ========================= */
-function clearPreviewLine(){
-  if(previewSvgLine){
-    previewSvgLine.remove();
-    previewSvgLine = null;
+function clearPreview(){
+  if(previewShape){
+    previewShape.remove();
+    previewShape = null;
   }
 }
 
-function drawPreviewLine(startRC, endRC){
-  clearPreviewLine();
+function drawPreviewCapsule(startRC, endRC){
+  clearPreview();
 
   const a = cellCenterPx(startRC.r, startRC.c);
   const b = cellCenterPx(endRC.r, endRC.c);
+  const cellPx = getCellSizePx();
 
-  previewSvgLine = makeLine(a.x, a.y, b.x, b.y, {
+  previewShape = makeCapsuleOutline(a.x, a.y, b.x, b.y, cellPx, {
     stroke: "#9e9e9e",
-    width: "8",
-    opacity: "0.65"
+    opacity: "0.65",
+    heightFactor: 0.78,
+    lengthPadFactor: 0.45
   });
-  overlayEl.appendChild(previewSvgLine);
+
+  overlayEl.appendChild(previewShape);
 }
 
 /* =========================
-   FOUND LINES DRAW
+   FOUND CAPSULES
 ========================= */
-function addFoundLine(word, startRC, endRC){
-  foundLineDefs.push({word, start: startRC, end: endRC});
-  redrawFoundLines();
-}
+function redrawFoundCapsules(){
+  const keepPreview = !!previewShape;
 
-function redrawFoundLines(){
-  // rimuovi tutte le linee persistenti (tenendo la preview separata)
-  // soluzione semplice: svuoto overlay e poi ridisegno
-  const keepPreview = previewSvgLine;
   overlayEl.innerHTML = "";
-  previewSvgLine = null;
+  previewShape = null;
 
-  for(const def of foundLineDefs){
+  const cellPx = getCellSizePx();
+
+  for(const def of foundCapsules){
     const a = cellCenterPx(def.start.r, def.start.c);
     const b = cellCenterPx(def.end.r, def.end.c);
 
-    const line = makeLine(a.x, a.y, b.x, b.y, {
+    const cap = makeCapsuleOutline(a.x, a.y, b.x, b.y, cellPx, {
       stroke: "#f5b301",
-      width: "10",
-      opacity: "0.85"
+      opacity: "0.95",
+      heightFactor: 0.78,
+      lengthPadFactor: 0.45
     });
-    overlayEl.appendChild(line);
+
+    overlayEl.appendChild(cap);
   }
 
-  // ripristina preview se esisteva
-  if(keepPreview){
-    // non possiamo riusare l'elemento (era rimosso), la ridisegniamo se abbiamo start/current
-    if(startPos && currentPos){
-      drawPreviewLine(startPos, currentPos);
-    }
+  if(keepPreview && startPos && currentPos){
+    // ridisegna preview se stavi trascinando durante resize
+    drawPreviewCapsule(startPos, currentPos);
   }
 }
 
@@ -383,12 +404,13 @@ function markFound(word, cells){
   const wEl = document.getElementById("word-" + word);
   if(wEl) wEl.classList.add("found");
 
-  // endpoints della selezione (prima e ultima cella della linea)
-  const startRC = cells[0];
-  const endRC   = cells[cells.length - 1];
+  foundCapsules.push({
+    word,
+    start: cells[0],
+    end: cells[cells.length - 1]
+  });
 
-  addFoundLine(word, startRC, endRC);
-
+  redrawFoundCapsules();
   updateProgress();
 
   if(foundWords.size === words.length){
@@ -397,7 +419,7 @@ function markFound(word, cells){
 }
 
 /* =========================
-   POINTER EVENTS
+   POINTER EVENTS (DRAG)
 ========================= */
 gridWrapEl.addEventListener("pointerdown", (e) => {
   const cellEl = getCellFromPoint(e.clientX, e.clientY);
@@ -413,8 +435,7 @@ gridWrapEl.addEventListener("pointerdown", (e) => {
   startPos = parseCell(cellEl);
   currentPos = {...startPos};
 
-  // preview iniziale (linea di lunghezza 0 non la disegniamo)
-  clearPreviewLine();
+  clearPreview();
 });
 
 gridWrapEl.addEventListener("pointermove", (e) => {
@@ -438,10 +459,9 @@ gridWrapEl.addEventListener("pointermove", (e) => {
 
   const cells = buildLineCells(startPos, currentPos, lockedDir);
   if(cells.length >= 2){
-    // disegna preview dal primo all'ultimo della linea “snappata”
-    drawPreviewLine(cells[0], cells[cells.length - 1]);
+    drawPreviewCapsule(cells[0], cells[cells.length - 1]);
   } else {
-    clearPreviewLine();
+    clearPreview();
   }
 });
 
@@ -450,13 +470,13 @@ function finishSelection(){
   isDragging = false;
 
   if(!startPos || !currentPos || !lockedDir){
-    clearPreviewLine();
+    clearPreview();
     startPos = null; currentPos = null; lockedDir = null;
     return;
   }
 
   const cells = buildLineCells(startPos, currentPos, lockedDir);
-  clearPreviewLine();
+  clearPreview();
 
   if(cells.length <= 1){
     startPos = null; currentPos = null; lockedDir = null;
@@ -494,6 +514,7 @@ buildWordList();
 updateProgress();
 setResponsiveCellSize();
 syncOverlaySize();
+redrawFoundCapsules();
 </script>
 </body>
 </html>
