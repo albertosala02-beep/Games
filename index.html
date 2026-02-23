@@ -110,7 +110,63 @@
     border-color:#34a853;
   }
 
-  /* ===== ANAGRAM ===== */
+  /* ===== PREMI (tasselli coperti finché non li hai tutti) ===== */
+  .prizeRow{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:10px;
+  }
+  .pTile{
+    width:44px;
+    height:44px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:900;
+    font-size:20px;
+    border:2px solid #cfcfcf;
+    background:#fff;
+    user-select:none;
+    -webkit-user-select:none;
+    position:relative;
+  }
+  .pTile.covered{
+    background:#111;
+    border-color:#111;
+    color:#111;
+  }
+  .pTile.covered::after{
+    content:"?";
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+    color:#fff;
+    opacity:.9;
+  }
+  .pTile.empty{
+    background:#fafafa;
+    border-style:dashed;
+    border-color:#cfcfcf;
+    color:#fafafa;
+  }
+  .pTile.empty::after{
+    content:"•";
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    color:#bdbdbd;
+  }
+
+  /* ===== ANAGRAM (visibile SOLO quando hai tutti i premi) ===== */
   .slots, .pool{
     display:flex;
     gap:8px;
@@ -138,7 +194,7 @@
   .tile{ border:2px solid #cfcfcf; background:#fff; cursor: grab; }
   .tile:active{ cursor:grabbing; }
 
-  /* ===== GAME 1: CROSSWORD ===== */
+  /* ===== GAME 3: CROSSWORD ===== */
   .layout{
     display:grid;
     grid-template-columns: 1fr;
@@ -229,7 +285,7 @@
     margin-top:12px;
   }
 
-  /* ===== GAME 2: CIPHER ===== */
+  /* ===== GAME 1: CIPHER ===== */
   .cipherBox{
     font-weight: 900;
     font-size: 18px;
@@ -249,7 +305,7 @@
   }
   .cipherInput:focus{ border-color:#111; box-shadow: 0 0 0 2px rgba(0,0,0,0.10); }
 
-  /* ===== GAME 3: LOGIC GRID ===== */
+  /* ===== GAME 2: LOGIC GRID ===== */
   .logicWrap{
     max-width: 860px;
     margin: 0 auto;
@@ -296,7 +352,7 @@
     .logicGrid .col3{ display:none; }
   }
   @media(max-width:420px){
-    .slot, .tile{ width:40px; height:40px; font-size:18px; }
+    .slot, .tile, .pTile{ width:40px; height:40px; font-size:18px; }
   }
 </style>
 </head>
@@ -304,73 +360,54 @@
 <body>
 <div class="wrap">
 
-  <!-- ======= ANAGRAM ALWAYS VISIBLE ======= -->
+  <!-- ======= PREMI + ANAGRAMMA (anagramma solo quando hai 7 premi) ======= -->
   <div class="card">
     <div class="topRow">
-      <div style="font-weight:900;">Anagramma finale</div>
-      <div class="chip" id="unlockedChip">Lettere sbloccate: 0 / 7</div>
+      <div style="font-weight:900;">Premi (tasselli)</div>
+      <div class="chip" id="prizeChip">Premi ottenuti: 0 / 7</div>
     </div>
 
-    <div class="slots" id="anaSlots"></div>
     <div class="sub" style="text-align:center;">
-      Trascina le lettere sbloccate negli spazi. Finché non le sblocchi tutte, non puoi completare la parola.
+      Completa i giochi per ottenere i tasselli. Le lettere restano coperte finché non li hai tutti.
     </div>
-    <div class="pool" id="anaPool"></div>
+
+    <div class="prizeRow" id="prizeRow" aria-label="Premi"></div>
 
     <div class="btnRow">
-      <button class="secondary" id="anaResetBtn">Reset anagramma</button>
       <button class="secondary" id="resetAllBtn">Reset percorso</button>
-      <button id="anaCheckBtn">Controlla</button>
     </div>
-    <div class="msg" id="anaMsg"></div>
+
+    <div class="msg" id="prizeMsg"></div>
+
+    <!-- ANAGRAMMA: appare solo a premi completi -->
+    <div id="anagramArea" class="hidden" style="margin-top:14px;">
+      <div class="topRow">
+        <div style="font-weight:900;">Anagramma finale</div>
+        <div class="chip">Lettere disponibili: 7 / 7</div>
+      </div>
+
+      <div class="slots" id="anaSlots"></div>
+      <div class="sub" style="text-align:center;">
+        Ora che hai tutti i tasselli, completa l’anagramma.
+      </div>
+      <div class="pool" id="anaPool"></div>
+
+      <div class="btnRow">
+        <button class="secondary" id="anaResetBtn">Reset anagramma</button>
+        <button id="anaCheckBtn">Controlla</button>
+      </div>
+      <div class="msg" id="anaMsg"></div>
+    </div>
   </div>
 
   <!-- ======= NAV (solo numeri) ======= -->
   <div class="stepNav" id="stepNav"></div>
 
-  <!-- ======= GAME 1 ======= -->
+  <!-- ======= GAME 1 — Cifrario (1 tile) ======= -->
   <div class="card" id="game1">
-    <div class="gameTitle">Gioco 1 — Cruciverba</div>
-    <div class="sub">Completa il cruciverba: le parole corrette diventano verdi.</div>
-
-    <div class="chip" id="cwProgress">0 / 10 parole corrette</div>
-
-    <div class="layout">
-      <div class="gridWrap">
-        <div id="cwGrid" aria-label="Cruciverba"></div>
-
-        <div class="btnRow">
-          <button class="secondary" id="cwClearBtn">Pulisci</button>
-          <button id="cwCheckBtn">Controlla</button>
-        </div>
-
-        <div class="msg" id="cwBanner"></div>
-      </div>
-
-      <div class="panel">
-        <h3>Definizioni</h3>
-        <div class="clues">
-          <div class="clueCol">
-            <h4>Orizzontali</h4>
-            <div id="cwAcrossClues"></div>
-          </div>
-          <div class="clueCol">
-            <h4>Verticali</h4>
-            <div id="cwDownClues"></div>
-          </div>
-        </div>
-        <div class="sub" style="margin-top:10px;">
-          Tip: tocca una casella e scrivi. Con Backspace torni indietro.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ======= GAME 2 ======= -->
-  <div class="card hidden" id="game2">
-    <div class="gameTitle">Gioco 2 — Cifrario</div>
+    <div class="gameTitle">Gioco 1 — Cifrario (1 tassello)</div>
     <div class="sub">
-      Ogni lettera è stata spostata di <b>+3</b> nell’alfabeto. Per decodificare, sposta di <b>-3</b>.
+      Ogni lettera è stata spostata di <b>+3</b>. Per decodificare, sposta di <b>-3</b>.
     </div>
 
     <div class="cipherBox" id="cipherText">O'DPRU FKH PXRYH LO VROH H OH DOWUH VWHOOH</div>
@@ -385,9 +422,9 @@
     <div class="msg" id="cipherMsg"></div>
   </div>
 
-  <!-- ======= GAME 3 ======= -->
-  <div class="card hidden" id="game3">
-    <div class="gameTitle">Gioco 3 — Logica deduttiva</div>
+  <!-- ======= GAME 2 — Logica (2 tile) ======= -->
+  <div class="card hidden" id="game2">
+    <div class="gameTitle">Gioco 2 — Logica deduttiva (2 tasselli)</div>
     <div class="sub">Usa gli indizi per abbinare correttamente oggetto e colore a ciascuna persona.</div>
 
     <div class="logicWrap">
@@ -441,15 +478,55 @@
     </div>
   </div>
 
+  <!-- ======= GAME 3 — Cruciverba (4 tile) ======= -->
+  <div class="card hidden" id="game3">
+    <div class="gameTitle">Gioco 3 — Cruciverba (4 tasselli)</div>
+    <div class="sub">Completa il cruciverba: le parole corrette diventano verdi.</div>
+
+    <div class="chip" id="cwProgress">0 / 10 parole corrette</div>
+
+    <div class="layout">
+      <div class="gridWrap">
+        <div id="cwGrid" aria-label="Cruciverba"></div>
+
+        <div class="btnRow">
+          <button class="secondary" id="cwClearBtn">Pulisci</button>
+          <button id="cwCheckBtn">Controlla</button>
+        </div>
+
+        <div class="msg" id="cwBanner"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Definizioni</h3>
+        <div class="clues">
+          <div class="clueCol">
+            <h4>Orizzontali</h4>
+            <div id="cwAcrossClues"></div>
+          </div>
+          <div class="clueCol">
+            <h4>Verticali</h4>
+            <div id="cwDownClues"></div>
+          </div>
+        </div>
+        <div class="sub" style="margin-top:10px;">
+          Tip: tocca una casella e scrivi. Con Backspace torni indietro.
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
 /* =========================================================
-   STORAGE + GLOBALS
+   GLOBALS + STORAGE
 ========================================================= */
 const FINAL_WORD = "CARAIBI";
-const STORAGE_UNLOCKED = "unlocked_letters";
-const STORAGE_ANAGRAM = "anagram_state";
+const TOTAL_TILES = FINAL_WORD.length; // 7
+
+const STORAGE_PRIZE_COUNT = "prize_count";
+const STORAGE_ANAGRAM  = "anagram_state";
 const STORAGE_GAME_DONE = "games_done";
 const STORAGE_CURRENT_GAME = "current_game";
 
@@ -458,35 +535,32 @@ function safeParseJSON(raw, fallback){
   catch{ return fallback; }
 }
 
-function getUnlocked(){
-  const raw = localStorage.getItem(STORAGE_UNLOCKED);
-  const arr = safeParseJSON(raw, []);
-  return Array.isArray(arr) ? arr.map(x => String(x).toUpperCase()) : [];
+/* ===== prize count ===== */
+function getPrizeCount(){
+  const raw = localStorage.getItem(STORAGE_PRIZE_COUNT);
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) ? Math.max(0, Math.min(n, TOTAL_TILES)) : 0;
+}
+function setPrizeCount(n){
+  const clamped = Math.max(0, Math.min(Number(n)||0, TOTAL_TILES));
+  localStorage.setItem(STORAGE_PRIZE_COUNT, String(clamped));
+}
+function addPrizes(amount){
+  const cur = getPrizeCount();
+  const next = Math.min(TOTAL_TILES, cur + amount);
+  setPrizeCount(next);
+  return next - cur; // quanti ne ha davvero aggiunti
+}
+function allPrizesCollected(){
+  return getPrizeCount() >= TOTAL_TILES;
 }
 
-function setUnlocked(arr){
-  const unique = Array.from(new Set(arr.map(x => String(x).toUpperCase())));
-  localStorage.setItem(STORAGE_UNLOCKED, JSON.stringify(unique));
-  updateUnlockedChip();
-}
-
-function unlockLetters(letters){
-  const cur = getUnlocked();
-  let changed = false;
-  for(const L of letters){
-    const u = String(L).toUpperCase();
-    if(!cur.includes(u)){ cur.push(u); changed = true; }
-  }
-  if(changed) setUnlocked(cur);
-}
-
+/* ===== games done ===== */
 function getGamesDone(){
   const raw = localStorage.getItem(STORAGE_GAME_DONE);
   const obj = safeParseJSON(raw, {});
   return (obj && typeof obj === "object") ? obj : {};
 }
-
-// aggiorna subito gli step quando completi un gioco
 function setGameDone(gameId){
   const obj = getGamesDone();
   if(!obj[gameId]){
@@ -497,50 +571,88 @@ function setGameDone(gameId){
 }
 
 /* =========================================================
-   ANAGRAM WIDGET (always visible)
+   PREMI UI (coperti finché non arrivi a 7)
+========================================================= */
+const prizeChipEl = document.getElementById("prizeChip");
+const prizeRowEl  = document.getElementById("prizeRow");
+const prizeMsgEl  = document.getElementById("prizeMsg");
+
+function renderPrizes(){
+  const count = getPrizeCount();
+  prizeChipEl.textContent = `Premi ottenuti: ${count} / ${TOTAL_TILES}`;
+
+  const reveal = allPrizesCollected();
+
+  prizeRowEl.innerHTML = "";
+  for(let i=0;i<TOTAL_TILES;i++){
+    const t = document.createElement("div");
+    t.className = "pTile";
+
+    const obtained = i < count;
+
+    if(!obtained){
+      t.classList.add("empty");
+      t.textContent = "";
+    }else{
+      if(!reveal){
+        t.classList.add("covered");
+        t.textContent = "";
+      }else{
+        t.textContent = FINAL_WORD[i]; // rivelate tutte insieme
+      }
+    }
+
+    prizeRowEl.appendChild(t);
+  }
+
+  document.getElementById("anagramArea").classList.toggle("hidden", !reveal);
+
+  if(reveal){
+    prizeMsgEl.textContent = "✅ Hai tutti i tasselli! Ora puoi completare l’anagramma.";
+    prizeMsgEl.className = "msg ok";
+  }else{
+    prizeMsgEl.textContent = "";
+    prizeMsgEl.className = "msg";
+  }
+}
+
+/* =========================================================
+   ANAGRAM (solo quando hai 7 premi)
 ========================================================= */
 const anaSlotsEl = document.getElementById("anaSlots");
 const anaPoolEl  = document.getElementById("anaPool");
 const anaMsgEl   = document.getElementById("anaMsg");
-const unlockedChipEl = document.getElementById("unlockedChip");
 
-let anaSlots = Array(FINAL_WORD.length).fill(null);
-
-function updateUnlockedChip(){
-  const cur = getUnlocked();
-  unlockedChipEl.textContent = `Lettere sbloccate: ${cur.length} / ${FINAL_WORD.length}`;
-}
+let anaSlots = Array(TOTAL_TILES).fill(null);
 
 function loadAnagram(){
   const raw = localStorage.getItem(STORAGE_ANAGRAM);
   const obj = safeParseJSON(raw, null);
-  if(obj && Array.isArray(obj.slots) && obj.slots.length === FINAL_WORD.length){
+  if(obj && Array.isArray(obj.slots) && obj.slots.length === TOTAL_TILES){
     anaSlots = obj.slots.map(x => x ? String(x).toUpperCase() : null);
   }
 }
-
 function saveAnagram(){
   localStorage.setItem(STORAGE_ANAGRAM, JSON.stringify({ slots: anaSlots }));
 }
-
 function computeAnaPool(){
-  const unlocked = getUnlocked();
+  const letters = FINAL_WORD.split("");
   const placed = anaSlots.filter(Boolean);
-  const pool = unlocked.slice();
+  const pool = letters.slice();
   for(const p of placed){
     const idx = pool.indexOf(p);
     if(idx >= 0) pool.splice(idx, 1);
   }
   return pool;
 }
-
 function renderAnagram(){
-  updateUnlockedChip();
+  if(!allPrizesCollected()) return;
+
   anaMsgEl.textContent = "";
   anaMsgEl.className = "msg";
 
   anaSlotsEl.innerHTML = "";
-  for(let i=0;i<FINAL_WORD.length;i++){
+  for(let i=0;i<TOTAL_TILES;i++){
     const slot = document.createElement("div");
     slot.className = "slot " + (anaSlots[i] ? "filled" : "empty");
     slot.dataset.idx = i;
@@ -590,15 +702,14 @@ function endAnaDrag(e){
 }
 
 document.getElementById("anaResetBtn").addEventListener("click", () => {
-  anaSlots = Array(FINAL_WORD.length).fill(null);
+  anaSlots = Array(TOTAL_TILES).fill(null);
   saveAnagram();
   renderAnagram();
 });
 
 document.getElementById("anaCheckBtn").addEventListener("click", () => {
-  const unlocked = getUnlocked();
-  if(unlocked.length < FINAL_WORD.length){
-    anaMsgEl.textContent = "Non puoi completarlo: ti mancano ancora delle lettere sbloccate.";
+  if(!allPrizesCollected()){
+    anaMsgEl.textContent = "Non puoi ancora: devi prima ottenere tutti i tasselli.";
     anaMsgEl.className = "msg bad";
     return;
   }
@@ -617,39 +728,10 @@ document.getElementById("anaCheckBtn").addEventListener("click", () => {
   }
 });
 
-// RESET COMPLETO (azzera anche lettere sbloccate / progressi)
-document.getElementById("resetAllBtn").addEventListener("click", () => {
-  localStorage.removeItem(STORAGE_UNLOCKED);
-  localStorage.removeItem(STORAGE_GAME_DONE);
-  localStorage.removeItem(STORAGE_CURRENT_GAME);
-  localStorage.removeItem(STORAGE_ANAGRAM);
-
-  anaSlots = Array(FINAL_WORD.length).fill(null);
-  currentGameIndex = 0;
-
-  // reset UI cruciverba
-  document.querySelectorAll("#cwGrid input").forEach(i => i.value = "");
-  cwBanner.textContent = "";
-  cwBanner.className = "msg";
-
-  // reset UI cifrario
-  cipherAnswerEl.value = "";
-  cipherMsgEl.textContent = "";
-  cipherMsgEl.className = "msg";
-
-  // reset UI logica
-  resetLogic();
-
-  renderAnagram();
-  cwValidateAll();
-  renderSteps();
-  showGame();
-});
-
 /* =========================================================
-   NAVIGATION (solo numeri 1/2/3, cliccabili se sbloccati)
+   NAVIGATION (ordine: 1 cifrario, 2 logica, 3 cruciverba)
 ========================================================= */
-const games = ["game1", "game2", "game3"];
+const games = ["game1","game2","game3"];
 let currentGameIndex = 0;
 
 function canAccess(index){
@@ -663,13 +745,12 @@ function canAccess(index){
 function renderSteps(){
   const nav = document.getElementById("stepNav");
   nav.innerHTML = "";
-
   const done = getGamesDone();
 
   games.forEach((g, i) => {
     const step = document.createElement("div");
     step.className = "step";
-    step.textContent = String(i + 1);
+    step.textContent = String(i+1);
 
     if(i === currentGameIndex) step.classList.add("active");
     if(done[g]) step.classList.add("done");
@@ -691,7 +772,6 @@ function showGame(){
   games.forEach((g,i)=>{
     document.getElementById(g).classList.toggle("hidden", i !== currentGameIndex);
   });
-
   localStorage.setItem(STORAGE_CURRENT_GAME, games[currentGameIndex]);
   renderSteps();
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -705,7 +785,201 @@ function restoreCurrentGame(){
 }
 
 /* =========================================================
-   GAME 1: CROSSWORD (reward unlock "C")
+   RESET COMPLETO
+========================================================= */
+document.getElementById("resetAllBtn").addEventListener("click", () => {
+  localStorage.removeItem(STORAGE_PRIZE_COUNT);
+  localStorage.removeItem(STORAGE_GAME_DONE);
+  localStorage.removeItem(STORAGE_CURRENT_GAME);
+  localStorage.removeItem(STORAGE_ANAGRAM);
+
+  anaSlots = Array(TOTAL_TILES).fill(null);
+  currentGameIndex = 0;
+
+  // reset UI cifrario
+  cipherAnswerEl.value = "";
+  cipherMsgEl.textContent = "";
+  cipherMsgEl.className = "msg";
+
+  // reset UI logica
+  resetLogic();
+
+  // reset UI cruciverba
+  document.querySelectorAll("#cwGrid input").forEach(i => i.value = "");
+  cwBanner.textContent = "";
+  cwBanner.className = "msg";
+
+  renderPrizes();
+  renderSteps();
+  showGame();
+});
+
+/* =========================================================
+   GAME 1: CIPHER (1 tile)
+========================================================= */
+const cipherAnswerEl = document.getElementById("cipherAnswer");
+const cipherMsgEl = document.getElementById("cipherMsg");
+const CIPHER_EXPECTED = "L'AMOR CHE MUOVE IL SOLE E LE ALTRE STELLE";
+
+function normalizeCipherInput(s){
+  return String(s || "")
+    .toUpperCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+document.getElementById("cipherClearBtn").addEventListener("click", () => {
+  cipherAnswerEl.value = "";
+  cipherMsgEl.textContent = "";
+  cipherMsgEl.className = "msg";
+});
+
+document.getElementById("cipherCheckBtn").addEventListener("click", () => {
+  const typed = normalizeCipherInput(cipherAnswerEl.value);
+  const expected = normalizeCipherInput(CIPHER_EXPECTED);
+
+  if(typed === expected){
+    const done = getGamesDone();
+    if(!done.game1){
+      addPrizes(1);
+      setGameDone("game1");
+    }
+    cipherMsgEl.textContent = `✅ Corretto! Hai ottenuto 1 tassello (${getPrizeCount()}/${TOTAL_TILES}).`;
+    cipherMsgEl.className = "msg ok";
+
+    renderPrizes();
+    if(allPrizesCollected()){
+      loadAnagram();
+      renderAnagram();
+    }
+  }else{
+    cipherMsgEl.textContent = "❌ Non è corretto.";
+    cipherMsgEl.className = "msg bad";
+  }
+});
+
+/* =========================================================
+   GAME 2: LOGIC (2 tile)
+========================================================= */
+const OBJECTS = ["LIBRO","CHIAVE","OCCHIALI"];
+const COLORS  = ["ROSSO","VERDE","BLU"];
+
+const logicWarn = document.getElementById("logicWarn");
+const logicMsg = document.getElementById("logicMsg");
+
+const selects = {
+  annaObj: document.getElementById("annaObj"),
+  brunoObj: document.getElementById("brunoObj"),
+  carloObj: document.getElementById("carloObj"),
+  annaCol: document.getElementById("annaCol"),
+  brunoCol: document.getElementById("brunoCol"),
+  carloCol: document.getElementById("carloCol")
+};
+
+function fillSelect(sel, items){
+  sel.innerHTML = "";
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = "— seleziona —";
+  sel.appendChild(opt0);
+
+  for(const it of items){
+    const o = document.createElement("option");
+    o.value = it;
+    o.textContent = it;
+    sel.appendChild(o);
+  }
+}
+
+function initLogicUI(){
+  fillSelect(selects.annaObj, OBJECTS);
+  fillSelect(selects.brunoObj, OBJECTS);
+  fillSelect(selects.carloObj, OBJECTS);
+  fillSelect(selects.annaCol, COLORS);
+  fillSelect(selects.brunoCol, COLORS);
+  fillSelect(selects.carloCol, COLORS);
+
+  for(const k in selects){
+    selects[k].addEventListener("change", () => {
+      logicMsg.textContent = "";
+      logicMsg.className = "msg";
+      checkUniquenessWarn();
+    });
+  }
+}
+
+function checkUniquenessWarn(){
+  const objs = [selects.annaObj.value, selects.brunoObj.value, selects.carloObj.value].filter(Boolean);
+  const cols = [selects.annaCol.value, selects.brunoCol.value, selects.carloCol.value].filter(Boolean);
+
+  const objDup = (new Set(objs)).size !== objs.length;
+  const colDup = (new Set(cols)).size !== cols.length;
+
+  logicWarn.style.display = (objDup || colDup) ? "block" : "none";
+}
+
+function resetLogic(){
+  for(const k in selects) selects[k].value = "";
+  logicWarn.style.display = "none";
+  logicMsg.textContent = "";
+  logicMsg.className = "msg";
+}
+
+function isLogicComplete(){
+  for(const k in selects){
+    if(!selects[k].value) return false;
+  }
+  return true;
+}
+
+function logicIsUnique(){
+  const objs = [selects.annaObj.value, selects.brunoObj.value, selects.carloObj.value];
+  const cols = [selects.annaCol.value, selects.brunoCol.value, selects.carloCol.value];
+  return (new Set(objs)).size === 3 && (new Set(cols)).size === 3;
+}
+
+function checkLogicSolution(){
+  if(!isLogicComplete()){
+    logicMsg.textContent = "Completa tutte le selezioni prima di controllare.";
+    logicMsg.className = "msg bad";
+    return;
+  }
+  if(!logicIsUnique()){
+    logicMsg.textContent = "Ogni oggetto e ogni colore deve essere usato una sola volta.";
+    logicMsg.className = "msg bad";
+    return;
+  }
+
+  const ok =
+    selects.annaObj.value === "LIBRO"      && selects.annaCol.value === "ROSSO" &&
+    selects.brunoObj.value === "CHIAVE"   && selects.brunoCol.value === "VERDE" &&
+    selects.carloObj.value === "OCCHIALI" && selects.carloCol.value === "BLU";
+
+  if(ok){
+    const done = getGamesDone();
+    if(!done.game2){
+      addPrizes(2);
+      setGameDone("game2");
+    }
+    logicMsg.textContent = `✅ Corretto! Hai ottenuto 2 tasselli (${getPrizeCount()}/${TOTAL_TILES}).`;
+    logicMsg.className = "msg ok";
+
+    renderPrizes();
+    if(allPrizesCollected()){
+      loadAnagram();
+      renderAnagram();
+    }
+  }else{
+    logicMsg.textContent = "❌ Non è corretto.";
+    logicMsg.className = "msg bad";
+  }
+}
+
+document.getElementById("logicClearBtn").addEventListener("click", resetLogic);
+document.getElementById("logicCheckBtn").addEventListener("click", checkLogicSolution);
+
+/* =========================================================
+   GAME 3: CROSSWORD (4 tile)
 ========================================================= */
 const cwGridEl = document.getElementById("cwGrid");
 const cwAcrossEl = document.getElementById("cwAcrossClues");
@@ -898,14 +1172,21 @@ function cwValidateAll(){
 
   if(correctCount === CW_TOTAL){
     const done = getGamesDone();
-    if(!done.game1){
-      unlockLetters(["C"]);
-      setGameDone("game1");
+    if(!done.game3){
+      addPrizes(4);
+      setGameDone("game3");
+      cwBanner.textContent = `✅ Completato! Hai ottenuto 4 tasselli (${getPrizeCount()}/${TOTAL_TILES}).`;
+      cwBanner.className = "msg ok";
+    }else{
+      cwBanner.textContent = `✅ Già completato. Premi: ${getPrizeCount()}/${TOTAL_TILES}.`;
+      cwBanner.className = "msg ok";
     }
-    const unlockedNow = getUnlocked().length;
-    cwBanner.textContent = `✅ Completato! Hai sbloccato ${unlockedNow} lettere.`;
-    cwBanner.className = "msg ok";
-    renderAnagram();
+
+    renderPrizes();
+    if(allPrizesCollected()){
+      loadAnagram();
+      renderAnagram();
+    }
   }else{
     if(cwBanner.classList.contains("ok")){
       cwBanner.textContent = "";
@@ -930,177 +1211,27 @@ document.getElementById("cwCheckBtn").addEventListener("click", () => {
 });
 
 /* =========================================================
-   GAME 2: CIPHER (reward unlock "A")
-========================================================= */
-const cipherAnswerEl = document.getElementById("cipherAnswer");
-const cipherMsgEl = document.getElementById("cipherMsg");
-const CIPHER_EXPECTED = "L'AMOR CHE MUOVE IL SOLE E LE ALTRE STELLE";
-
-function normalizeCipherInput(s){
-  return String(s || "")
-    .toUpperCase()
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-document.getElementById("cipherClearBtn").addEventListener("click", () => {
-  cipherAnswerEl.value = "";
-  cipherMsgEl.textContent = "";
-  cipherMsgEl.className = "msg";
-});
-
-document.getElementById("cipherCheckBtn").addEventListener("click", () => {
-  const typed = normalizeCipherInput(cipherAnswerEl.value);
-  const expected = normalizeCipherInput(CIPHER_EXPECTED);
-
-  if(typed === expected){
-    const done = getGamesDone();
-    if(!done.game2){
-      unlockLetters(["A"]);
-      setGameDone("game2");
-    }
-    const unlockedNow = getUnlocked().length;
-    cipherMsgEl.textContent = `✅ Corretto! Hai sbloccato ${unlockedNow} lettere.`;
-    cipherMsgEl.className = "msg ok";
-    renderAnagram();
-  }else{
-    cipherMsgEl.textContent = "❌ Non è corretto.";
-    cipherMsgEl.className = "msg bad";
-  }
-});
-
-/* =========================================================
-   GAME 3: LOGIC DEDUCTION (reward unlock "R")
-========================================================= */
-const OBJECTS = ["LIBRO","CHIAVE","OCCHIALI"];
-const COLORS  = ["ROSSO","VERDE","BLU"];
-
-const logicWarn = document.getElementById("logicWarn");
-const logicMsg = document.getElementById("logicMsg");
-
-const selects = {
-  annaObj: document.getElementById("annaObj"),
-  brunoObj: document.getElementById("brunoObj"),
-  carloObj: document.getElementById("carloObj"),
-  annaCol: document.getElementById("annaCol"),
-  brunoCol: document.getElementById("brunoCol"),
-  carloCol: document.getElementById("carloCol")
-};
-
-function fillSelect(sel, items){
-  sel.innerHTML = "";
-  const opt0 = document.createElement("option");
-  opt0.value = "";
-  opt0.textContent = "— seleziona —";
-  sel.appendChild(opt0);
-
-  for(const it of items){
-    const o = document.createElement("option");
-    o.value = it;
-    o.textContent = it;
-    sel.appendChild(o);
-  }
-}
-
-function initLogicUI(){
-  fillSelect(selects.annaObj, OBJECTS);
-  fillSelect(selects.brunoObj, OBJECTS);
-  fillSelect(selects.carloObj, OBJECTS);
-  fillSelect(selects.annaCol, COLORS);
-  fillSelect(selects.brunoCol, COLORS);
-  fillSelect(selects.carloCol, COLORS);
-
-  for(const k in selects){
-    selects[k].addEventListener("change", () => {
-      logicMsg.textContent = "";
-      logicMsg.className = "msg";
-      checkUniquenessWarn();
-    });
-  }
-}
-
-function checkUniquenessWarn(){
-  const objs = [selects.annaObj.value, selects.brunoObj.value, selects.carloObj.value].filter(Boolean);
-  const cols = [selects.annaCol.value, selects.brunoCol.value, selects.carloCol.value].filter(Boolean);
-
-  const objDup = (new Set(objs)).size !== objs.length;
-  const colDup = (new Set(cols)).size !== cols.length;
-
-  logicWarn.style.display = (objDup || colDup) ? "block" : "none";
-}
-
-function resetLogic(){
-  for(const k in selects) selects[k].value = "";
-  logicWarn.style.display = "none";
-  logicMsg.textContent = "";
-  logicMsg.className = "msg";
-}
-
-function isLogicComplete(){
-  for(const k in selects){
-    if(!selects[k].value) return false;
-  }
-  return true;
-}
-
-function logicIsUnique(){
-  const objs = [selects.annaObj.value, selects.brunoObj.value, selects.carloObj.value];
-  const cols = [selects.annaCol.value, selects.brunoCol.value, selects.carloCol.value];
-  return (new Set(objs)).size === 3 && (new Set(cols)).size === 3;
-}
-
-function checkLogicSolution(){
-  if(!isLogicComplete()){
-    logicMsg.textContent = "Completa tutte le selezioni prima di controllare.";
-    logicMsg.className = "msg bad";
-    return;
-  }
-  if(!logicIsUnique()){
-    logicMsg.textContent = "Ogni oggetto e ogni colore deve essere usato una sola volta.";
-    logicMsg.className = "msg bad";
-    return;
-  }
-
-  const ok =
-    selects.annaObj.value === "LIBRO"      && selects.annaCol.value === "ROSSO" &&
-    selects.brunoObj.value === "CHIAVE"   && selects.brunoCol.value === "VERDE" &&
-    selects.carloObj.value === "OCCHIALI" && selects.carloCol.value === "BLU";
-
-  if(ok){
-    const done = getGamesDone();
-    if(!done.game3){
-      unlockLetters(["R"]);
-      setGameDone("game3");
-    }
-    const unlockedNow = getUnlocked().length;
-    logicMsg.textContent = `✅ Corretto! Hai sbloccato ${unlockedNow} lettere.`;
-    logicMsg.className = "msg ok";
-    renderAnagram();
-  }else{
-    logicMsg.textContent = "❌ Non è corretto.";
-    logicMsg.className = "msg bad";
-  }
-}
-
-document.getElementById("logicClearBtn").addEventListener("click", resetLogic);
-document.getElementById("logicCheckBtn").addEventListener("click", checkLogicSolution);
-
-/* =========================================================
    INIT
 ========================================================= */
 function init(){
+  // premi/anagram
+  renderPrizes();
   loadAnagram();
-  updateUnlockedChip();
-  renderAnagram();
+  if(allPrizesCollected()){
+    renderAnagram();
+  }
 
+  // logica
+  initLogicUI();
+  checkUniquenessWarn();
+
+  // cruciverba
   cwSetResponsiveCellSize();
   cwBuildClues();
   cwBuildGrid();
   cwValidateAll();
 
-  initLogicUI();
-  checkUniquenessWarn();
-
+  // nav
   restoreCurrentGame();
 }
 init();
