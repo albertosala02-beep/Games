@@ -50,14 +50,6 @@
 
   .sub{ color:#555; font-size:13px; margin:10px 0 0; }
 
-  .navRow{
-    display:flex;
-    justify-content:center;
-    gap:10px;
-    flex-wrap:wrap;
-    margin-bottom: 10px;
-  }
-
   button{
     border:0;
     border-radius:999px;
@@ -80,6 +72,43 @@
 
   .gameTitle{ font-weight:900; font-size:16px; margin: 2px 0 8px; }
   .hidden{ display:none !important; }
+
+  /* ===== NAV STEP (1/2/3) ===== */
+  .stepNav{
+    display:flex;
+    justify-content:center;
+    gap:16px;
+    margin-bottom:14px;
+  }
+  .step{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:900;
+    border:2px solid #ccc;
+    background:#fff;
+    cursor:pointer;
+    transition:all .2s;
+  }
+  .step.locked{
+    background:#eee;
+    color:#999;
+    border-color:#ddd;
+    cursor:not-allowed;
+  }
+  .step.active{
+    background:#111;
+    color:#fff;
+    border-color:#111;
+  }
+  .step.done{
+    background:#34a853;
+    color:#fff;
+    border-color:#34a853;
+  }
 
   /* ===== ANAGRAM ===== */
   .slots, .pool{
@@ -226,7 +255,6 @@
     margin: 0 auto;
     text-align:left;
   }
-
   .logicGrid{
     display:grid;
     grid-template-columns: 160px 1fr 1fr;
@@ -234,17 +262,8 @@
     align-items:center;
     margin-top: 10px;
   }
-
-  .logicHeader{
-    font-weight:900;
-    color:#333;
-  }
-
-  .logicRowLabel{
-    font-weight:900;
-    padding:8px 0;
-  }
-
+  .logicHeader{ font-weight:900; color:#333; }
+  .logicRowLabel{ font-weight:900; padding:8px 0; }
   .logicSelect{
     width: 100%;
     padding: 10px;
@@ -258,7 +277,6 @@
     border-color:#111;
     box-shadow: 0 0 0 2px rgba(0,0,0,0.10);
   }
-
   .hintList{
     margin-top:12px;
     padding-left: 16px;
@@ -266,20 +284,17 @@
     line-height:1.45;
     font-size: 13px;
   }
-
   .warn{
     margin-top:10px;
     font-weight:900;
     color:#c62828;
     display:none;
   }
-
   @media(max-width: 820px){
     .logicGrid{ grid-template-columns: 120px 1fr; }
     .logicGrid .logicHeader:nth-child(3){ display:none; }
     .logicGrid .col3{ display:none; }
   }
-
   @media(max-width:420px){
     .slot, .tile{ width:40px; height:40px; font-size:18px; }
   }
@@ -309,11 +324,8 @@
     <div class="msg" id="anaMsg"></div>
   </div>
 
-  <!-- ======= NAV ======= -->
-  <div class="navRow">
-    <button class="secondary" id="prevBtn">◀ Gioco precedente</button>
-    <button id="nextBtn">Gioco successivo ▶</button>
-  </div>
+  <!-- ======= NAV (solo numeri) ======= -->
+  <div class="stepNav" id="stepNav"></div>
 
   <!-- ======= GAME 1 ======= -->
   <div class="card" id="game1">
@@ -473,12 +485,14 @@ function getGamesDone(){
   return (obj && typeof obj === "object") ? obj : {};
 }
 
+// FIX: aggiorna subito gli step quando completi un gioco
 function setGameDone(gameId){
   const obj = getGamesDone();
   if(!obj[gameId]){
     obj[gameId] = true;
     localStorage.setItem(STORAGE_GAME_DONE, JSON.stringify(obj));
   }
+  renderSteps();
 }
 
 /* =========================================================
@@ -493,7 +507,7 @@ let anaSlots = Array(FINAL_WORD.length).fill(null);
 
 function updateUnlockedChip(){
   const cur = getUnlocked();
-  unlockedChipEl.textContent = `Lettere sbloccate: ${cur.length} / 7`;
+  unlockedChipEl.textContent = `Lettere sbloccate: ${cur.length} / ${FINAL_WORD.length}`;
 }
 
 function loadAnagram(){
@@ -603,29 +617,61 @@ document.getElementById("anaCheckBtn").addEventListener("click", () => {
 });
 
 /* =========================================================
-   NAVIGATION
+   NAVIGATION (solo numeri 1/2/3, cliccabili se sbloccati)
 ========================================================= */
 const games = ["game1", "game2", "game3"];
 let currentGameIndex = 0;
 
-function showGameByIndex(idx){
-  currentGameIndex = Math.max(0, Math.min(idx, games.length - 1));
-  for(let i=0;i<games.length;i++){
-    document.getElementById(games[i]).classList.toggle("hidden", i !== currentGameIndex);
-  }
-  document.getElementById("prevBtn").disabled = (currentGameIndex === 0);
-  document.getElementById("nextBtn").disabled = (currentGameIndex === games.length - 1);
-  localStorage.setItem(STORAGE_CURRENT_GAME, games[currentGameIndex]);
-  window.scrollTo({ top: 0, behavior: "smooth" });
+function canAccess(index){
+  const done = getGamesDone();
+  if(index === 0) return true;
+  if(index === 1) return !!done.game1;
+  if(index === 2) return !!done.game2;
+  return false;
 }
 
-document.getElementById("prevBtn").addEventListener("click", () => showGameByIndex(currentGameIndex - 1));
-document.getElementById("nextBtn").addEventListener("click", () => showGameByIndex(currentGameIndex + 1));
+function renderSteps(){
+  const nav = document.getElementById("stepNav");
+  nav.innerHTML = "";
+
+  const done = getGamesDone();
+
+  games.forEach((g, i) => {
+    const step = document.createElement("div");
+    step.className = "step";
+    step.textContent = String(i + 1);
+
+    if(i === currentGameIndex) step.classList.add("active");
+    if(done[g]) step.classList.add("done");
+
+    if(!canAccess(i)){
+      step.classList.add("locked");
+    }else{
+      step.addEventListener("click", () => {
+        currentGameIndex = i;
+        showGame();
+      });
+    }
+
+    nav.appendChild(step);
+  });
+}
+
+function showGame(){
+  games.forEach((g,i)=>{
+    document.getElementById(g).classList.toggle("hidden", i !== currentGameIndex);
+  });
+
+  localStorage.setItem(STORAGE_CURRENT_GAME, games[currentGameIndex]);
+  renderSteps();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
 function restoreCurrentGame(){
   const saved = localStorage.getItem(STORAGE_CURRENT_GAME);
   const idx = games.indexOf(saved);
-  showGameByIndex(idx >= 0 ? idx : 0);
+  currentGameIndex = (idx >= 0 && canAccess(idx)) ? idx : 0;
+  showGame();
 }
 
 /* =========================================================
@@ -742,6 +788,7 @@ function cwBuildClues(){
   cwDownEl.innerHTML = "";
   const across = CW_WORDS.filter(w=>w.dir==="A").sort((a,b)=>a.num-b.num);
   const down = CW_WORDS.filter(w=>w.dir==="D").sort((a,b)=>a.num-b.num);
+
   for(const w of across){
     const div = document.createElement("div");
     div.className = "clue";
@@ -894,23 +941,7 @@ document.getElementById("cipherCheckBtn").addEventListener("click", () => {
 
 /* =========================================================
    GAME 3: LOGIC DEDUCTION (reward unlock "R")
-   Solution implied by clues:
-   - BOOK is RED (given)
-   - Bruno not book nor glasses => Bruno = KEY
-   - Key not red => key is GREEN or BLUE
-   - Blue person not Anna
-   - Carlo not green
-   - Anna not key => Anna = BOOK => Anna is RED
-   - Remaining colors: GREEN/BLUE for Bruno/Carlo
-   - Carlo not green => Carlo = BLUE
-   - Bruno = GREEN
-   Remaining objects: glasses for Carlo.
-   Final:
-     ANNA  -> LIBRO, ROSSO
-     BRUNO -> CHIAVE, VERDE
-     CARLO -> OCCHIALI, BLU
 ========================================================= */
-const PEOPLE = ["ANNA","BRUNO","CARLO"];
 const OBJECTS = ["LIBRO","CHIAVE","OCCHIALI"];
 const COLORS  = ["ROSSO","VERDE","BLU"];
 
@@ -965,8 +996,7 @@ function checkUniquenessWarn(){
   const objDup = (new Set(objs)).size !== objs.length;
   const colDup = (new Set(cols)).size !== cols.length;
 
-  const show = objDup || colDup;
-  logicWarn.style.display = show ? "block" : "none";
+  logicWarn.style.display = (objDup || colDup) ? "block" : "none";
 }
 
 function resetLogic(){
@@ -990,7 +1020,6 @@ function logicIsUnique(){
 }
 
 function checkLogicSolution(){
-  // enforce uniqueness
   if(!isLogicComplete()){
     logicMsg.textContent = "Completa tutte le selezioni prima di controllare.";
     logicMsg.className = "msg bad";
@@ -1003,8 +1032,8 @@ function checkLogicSolution(){
   }
 
   const ok =
-    selects.annaObj.value === "LIBRO"    && selects.annaCol.value === "ROSSO" &&
-    selects.brunoObj.value === "CHIAVE" && selects.brunoCol.value === "VERDE" &&
+    selects.annaObj.value === "LIBRO"      && selects.annaCol.value === "ROSSO" &&
+    selects.brunoObj.value === "CHIAVE"   && selects.brunoCol.value === "VERDE" &&
     selects.carloObj.value === "OCCHIALI" && selects.carloCol.value === "BLU";
 
   if(ok){
@@ -1027,28 +1056,6 @@ document.getElementById("logicClearBtn").addEventListener("click", resetLogic);
 document.getElementById("logicCheckBtn").addEventListener("click", checkLogicSolution);
 
 /* =========================================================
-   NAV INIT
-========================================================= */
-function showGameByIndex(idx){
-  currentGameIndex = Math.max(0, Math.min(idx, games.length - 1));
-  for(let i=0;i<games.length;i++){
-    document.getElementById(games[i]).classList.toggle("hidden", i !== currentGameIndex);
-  }
-  document.getElementById("prevBtn").disabled = (currentGameIndex === 0);
-  document.getElementById("nextBtn").disabled = (currentGameIndex === games.length - 1);
-  localStorage.setItem(STORAGE_CURRENT_GAME, games[currentGameIndex]);
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-document.getElementById("prevBtn").addEventListener("click", () => showGameByIndex(currentGameIndex - 1));
-document.getElementById("nextBtn").addEventListener("click", () => showGameByIndex(currentGameIndex + 1));
-
-function restoreCurrentGame(){
-  const saved = localStorage.getItem(STORAGE_CURRENT_GAME);
-  const idx = games.indexOf(saved);
-  showGameByIndex(idx >= 0 ? idx : 0);
-}
-
-/* =========================================================
    INIT
 ========================================================= */
 function init(){
@@ -1067,7 +1074,7 @@ function init(){
   initLogicUI();
   checkUniquenessWarn();
 
-  // show last game
+  // show last accessible game
   restoreCurrentGame();
 }
 init();
