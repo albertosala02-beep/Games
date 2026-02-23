@@ -6,10 +6,7 @@
 <title>Enigmistica — Percorso</title>
 
 <style>
-  :root{
-    --gap: 3px;
-    --cell: 34px;
-  }
+  :root{ --gap: 3px; --cell: 34px; }
 
   body{
     font-family: Arial, sans-serif;
@@ -62,11 +59,7 @@
   button.secondary{ background:#e0e0e0; color:#111; }
   button:disabled{ opacity:0.5; cursor:not-allowed; }
 
-  .msg{
-    margin-top:10px;
-    font-weight:900;
-    min-height: 22px;
-  }
+  .msg{ margin-top:10px; font-weight:900; min-height: 22px; }
   .ok{ color:#2e7d32; }
   .bad{ color:#c62828; }
 
@@ -410,9 +403,10 @@
       Ogni lettera è stata spostata di <b>+3</b>. Per decodificare, sposta di <b>-3</b>.
     </div>
 
-    <div class="cipherBox" id="cipherText">O'DPRU FKH PXRYH LO VROH H OH DOWUH VWHOOH</div>
+    <!-- NUOVA FRASE (cifrata +3) -->
+    <div class="cipherBox" id="cipherText">IHOLFLWÀ QRQ È DYHUH WXWWR FLR FKH VL GHVLGHUD, PD GHVLGHUDUH FLR FKH VL KD</div>
 
-    <input class="cipherInput" id="cipherAnswer" placeholder="Inserisci la frase decodificata (con apostrofo)" />
+    <input class="cipherInput" id="cipherAnswer" placeholder="Inserisci la frase decodificata" />
 
     <div class="btnRow">
       <button class="secondary" id="cipherClearBtn">Pulisci</button>
@@ -467,6 +461,7 @@
         <li><b>CARLO</b> non ha il colore <b>VERDE</b>.</li>
         <li>Il <b>LIBRO</b> è associato al colore <b>ROSSO</b>.</li>
         <li><b>ANNA</b> non ha la <b>CHIAVE</b>.</li>
+        <li><b>BRUNO</b> non ha il colore <b>BLU</b>.</li>
       </ul>
 
       <div class="btnRow">
@@ -549,7 +544,7 @@ function addPrizes(amount){
   const cur = getPrizeCount();
   const next = Math.min(TOTAL_TILES, cur + amount);
   setPrizeCount(next);
-  return next - cur; // quanti ne ha davvero aggiunti
+  return next - cur;
 }
 function allPrizesCollected(){
   return getPrizeCount() >= TOTAL_TILES;
@@ -598,7 +593,7 @@ function renderPrizes(){
         t.classList.add("covered");
         t.textContent = "";
       }else{
-        t.textContent = FINAL_WORD[i]; // rivelate tutte insieme
+        t.textContent = FINAL_WORD[i];
       }
     }
 
@@ -819,7 +814,7 @@ document.getElementById("resetAllBtn").addEventListener("click", () => {
 ========================================================= */
 const cipherAnswerEl = document.getElementById("cipherAnswer");
 const cipherMsgEl = document.getElementById("cipherMsg");
-const CIPHER_EXPECTED = "L'AMOR CHE MUOVE IL SOLE E LE ALTRE STELLE";
+const CIPHER_EXPECTED = "FELICITÀ NON È AVERE TUTTO CIÒ CHE SI DESIDERA, MA DESIDERARE CIÒ CHE SI HA";
 
 function normalizeCipherInput(s){
   return String(s || "")
@@ -1140,7 +1135,7 @@ function cwBuildGrid(){
 
       input.addEventListener("input", (e) => {
         const v = (e.target.value || "").toUpperCase();
-        e.target.value = v.replace(/[^A-Z]/g,"").slice(0,1);
+        e.target.value = v.replace(/[^A-ZÀ-ÖØ-Ý]/g,"").slice(0,1);
         cwValidateAll();
         if(e.target.value) cwFocusNext(r,c);
       });
