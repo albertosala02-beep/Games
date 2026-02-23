@@ -412,6 +412,23 @@
   @media(max-width:420px){
     .slot, .tile, .pTile{ width:40px; height:40px; font-size:18px; }
   }
+
+  /* =========================================================
+     MODALITÀ: SOLO WORD SEARCH (dopo anagramma completato)
+     Attivata con body.finalOnly
+  ========================================================= */
+  body.finalOnly .stepNav,
+  body.finalOnly #game1,
+  body.finalOnly #game2,
+  body.finalOnly #game3,
+  body.finalOnly .card:first-of-type{
+    display:none !important;
+  }
+
+  body.finalOnly #game4{
+    max-width: 980px;
+    margin: 0 auto;
+  }
 </style>
 </head>
 
@@ -787,9 +804,7 @@ document.getElementById("anaResetBtn").addEventListener("click", () => {
 });
 
 function unlockFinalGame(){
-  // rende cliccabile il 4 e mostra il gioco finale
   renderSteps();
-  // se stai su un gioco precedente, non forzo il cambio; però lo faccio apparire sbloccato
 }
 
 document.getElementById("anaCheckBtn").addEventListener("click", () => {
@@ -873,10 +888,13 @@ function showGame(){
   localStorage.setItem(STORAGE_CURRENT_GAME, games[currentGameIndex]);
   renderSteps();
 
+  // ✅ Se siamo nel game4, “ripulisci” la schermata mostrando solo il Word Search
+  const isFinal = (games[currentGameIndex] === "game4");
+  document.body.classList.toggle("finalOnly", isFinal);
+
   // se apro il finale, inizializzo il word search quando la card è visibile
-  if(games[currentGameIndex] === "game4"){
+  if(isFinal){
     initWordSearchOnce();
-    // resize per far calcolare correttamente overlay/griglia
     wsSetResponsiveCellSize();
   }
 
@@ -925,6 +943,9 @@ document.getElementById("resetAllBtn").addEventListener("click", () => {
   // reset word search (solo in memoria)
   wsResetInMemory();
 
+  // torna layout normale (non finale)
+  document.body.classList.remove("finalOnly");
+
   renderPrizes();
   renderSteps();
   showGame();
@@ -937,9 +958,11 @@ const cipherAnswerEl = document.getElementById("cipherAnswer");
 const cipherMsgEl = document.getElementById("cipherMsg");
 const CIPHER_EXPECTED = "FELICITÀ NON È AVERE TUTTO CIÒ CHE SI DESIDERA, MA DESIDERARE CIÒ CHE SI HA";
 
+// ✅ punteggiatura ignorata: rimuovo tutto ciò che non è lettera (incluse accentate italiane) o spazio
 function normalizeCipherInput(s){
   return String(s || "")
     .toUpperCase()
+    .replace(/[^A-ZÀÈÉÌÒÙ\s]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -1407,7 +1430,6 @@ function initWordSearchOnce(){
   wsRedrawFoundCapsules();
 
   window.addEventListener("resize", () => {
-    // aggiorna solo se il gioco 4 è visibile
     const visible = !document.getElementById("game4").classList.contains("hidden");
     if(visible){
       wsSetResponsiveCellSize();
@@ -1471,7 +1493,6 @@ function initWordSearchOnce(){
 }
 
 function wsSetResponsiveCellSize(){
-  // questo gioco è 12x12, facciamo un maxWidth sensato
   const padding = 24;
   const maxWidth = Math.min(window.innerWidth, 520) - padding;
   const gap = 3;
@@ -1524,7 +1545,6 @@ function wsUpdateProgress(){
 
 function wsSyncOverlaySize(){
   const rect = wsGridEl.getBoundingClientRect();
-  // se è nascosto (width 0), esci: verrà rifatto quando visibile
   if(rect.width <= 0 || rect.height <= 0) return;
 
   wsOverlayEl.setAttribute("width", rect.width);
@@ -1647,7 +1667,6 @@ function wsDrawPreviewCapsule(startRC, endRC){
 }
 
 function wsRedrawFoundCapsules(){
-  // se overlay ha size 0 (nascosto), non forzare: verrà rifatto quando visibile
   const rect = wsGridEl.getBoundingClientRect();
   if(rect.width <= 0 || rect.height <= 0) return;
 
@@ -1752,7 +1771,7 @@ function init(){
   // nav
   restoreCurrentGame();
 
-  // se anagramma già completato, sblocca step 4 e prepara il game4 (ma init lo facciamo quando lo apri)
+  // se anagramma già completato, sblocca step 4
   renderSteps();
 }
 init();
