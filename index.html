@@ -319,6 +319,7 @@
 
     <div class="btnRow">
       <button class="secondary" id="anaResetBtn">Reset anagramma</button>
+      <button class="secondary" id="resetAllBtn">Reset percorso</button>
       <button id="anaCheckBtn">Controlla</button>
     </div>
     <div class="msg" id="anaMsg"></div>
@@ -485,7 +486,7 @@ function getGamesDone(){
   return (obj && typeof obj === "object") ? obj : {};
 }
 
-// FIX: aggiorna subito gli step quando completi un gioco
+// aggiorna subito gli step quando completi un gioco
 function setGameDone(gameId){
   const obj = getGamesDone();
   if(!obj[gameId]){
@@ -614,6 +615,35 @@ document.getElementById("anaCheckBtn").addEventListener("click", () => {
     anaMsgEl.textContent = "❌ Non è corretto. Riprova.";
     anaMsgEl.className = "msg bad";
   }
+});
+
+// RESET COMPLETO (azzera anche lettere sbloccate / progressi)
+document.getElementById("resetAllBtn").addEventListener("click", () => {
+  localStorage.removeItem(STORAGE_UNLOCKED);
+  localStorage.removeItem(STORAGE_GAME_DONE);
+  localStorage.removeItem(STORAGE_CURRENT_GAME);
+  localStorage.removeItem(STORAGE_ANAGRAM);
+
+  anaSlots = Array(FINAL_WORD.length).fill(null);
+  currentGameIndex = 0;
+
+  // reset UI cruciverba
+  document.querySelectorAll("#cwGrid input").forEach(i => i.value = "");
+  cwBanner.textContent = "";
+  cwBanner.className = "msg";
+
+  // reset UI cifrario
+  cipherAnswerEl.value = "";
+  cipherMsgEl.textContent = "";
+  cipherMsgEl.className = "msg";
+
+  // reset UI logica
+  resetLogic();
+
+  renderAnagram();
+  cwValidateAll();
+  renderSteps();
+  showGame();
 });
 
 /* =========================================================
@@ -1059,22 +1089,18 @@ document.getElementById("logicCheckBtn").addEventListener("click", checkLogicSol
    INIT
 ========================================================= */
 function init(){
-  // anagram
   loadAnagram();
   updateUnlockedChip();
   renderAnagram();
 
-  // game1
   cwSetResponsiveCellSize();
   cwBuildClues();
   cwBuildGrid();
   cwValidateAll();
 
-  // game3
   initLogicUI();
   checkUniquenessWarn();
 
-  // show last accessible game
   restoreCurrentGame();
 }
 init();
