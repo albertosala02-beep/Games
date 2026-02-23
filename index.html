@@ -3,519 +3,954 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>♥ 30 Anni Bubola ♥</title>
+<title>Enigmistica — Percorso</title>
 
 <style>
   :root{
     --gap: 3px;
-    --cell: 34px; /* responsive via JS */
+    --cell: 34px; /* crossword cell */
   }
 
   body{
     font-family: Arial, sans-serif;
-    text-align:center;
     background:#f2f2f2;
     margin:0;
-    padding:12px;
+    padding:14px;
+    text-align:center;
   }
+
+  .wrap{ max-width: 1100px; margin: 0 auto; }
 
   h2{ margin:10px 0 6px; }
+  .sub{ color:#555; font-size:13px; margin-bottom:10px; }
 
-  .hint{
-    color:#555;
-    font-size:13px;
-    margin:6px 0 10px;
+  .card{
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:14px;
+    padding:14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    margin: 0 auto 14px;
   }
 
-  .bar{
+  .topRow{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  .chip{
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:999px;
+    padding:8px 12px;
+    font-weight:900;
+    font-size:13px;
+    color:#333;
+    display:inline-block;
+  }
+
+  /* ======= NAV ======= */
+  .navRow{
     display:flex;
     justify-content:center;
     gap:10px;
-    align-items:center;
-    margin: 6px 0 2px;
+    flex-wrap:wrap;
+    margin-bottom: 10px;
   }
-  .chip{
-    background:#fff;
-    padding:6px 10px;
-    border:1px solid #ddd;
+
+  button{
+    border:0;
     border-radius:999px;
-    font-size:13px;
-    font-weight:800;
-    color:#333;
+    padding:10px 14px;
+    font-weight:900;
+    background:#111;
+    color:#fff;
+    cursor:pointer;
   }
 
-  /* wrapper relativo per griglia + overlay */
-  #gridWrap{
-    position: relative;
-    display: inline-block;
-    margin: 14px auto;
-    touch-action:none; /* iPhone: evita scroll/zoom durante drag */
+  button.secondary{
+    background:#e0e0e0;
+    color:#111;
   }
 
-  #grid{
-    display:grid;
-    gap: var(--gap);
+  button:disabled{
+    opacity:0.5;
+    cursor:not-allowed;
+  }
+
+  /* =========================
+     ANAGRAM WIDGET
+  ========================= */
+  .slots, .pool{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
     justify-content:center;
-    touch-action:none;
+    margin-top:10px;
   }
 
-  .cell{
-    width: var(--cell);
-    height: var(--cell);
-    background:#fff;
-    border:1px solid #cfcfcf;
-    border-radius:10px;
+  .slot, .tile{
+    width:44px;
+    height:44px;
+    border-radius:12px;
     display:flex;
     align-items:center;
     justify-content:center;
     font-weight:900;
-    font-size: calc(var(--cell) * 0.55);
+    font-size:20px;
     user-select:none;
     -webkit-user-select:none;
     touch-action:none;
   }
 
-  /* overlay sopra la griglia */
-  #overlay{
+  .slot{
+    border:2px dashed #bdbdbd;
+    background:#fafafa;
+    color:#111;
+  }
+
+  .slot.empty::after{
+    content:"•";
+    color:#9e9e9e;
+    font-size:22px;
+    line-height:1;
+  }
+
+  .slot.filled{
+    border-style: solid;
+    border-color:#cfcfcf;
+    background:#fff;
+  }
+
+  .slot.filled::after{ content:""; }
+
+  .tile{
+    border:2px solid #cfcfcf;
+    background:#fff;
+    cursor: grab;
+  }
+
+  .tile:active{ cursor:grabbing; }
+
+  .msg{
+    margin-top:10px;
+    font-weight:900;
+    min-height: 22px;
+  }
+  .ok{ color:#2e7d32; }
+  .bad{ color:#c62828; }
+
+  /* =========================
+     GAME CONTAINER
+  ========================= */
+  .gameTitle{
+    font-weight:900;
+    font-size:16px;
+    margin: 2px 0 8px;
+  }
+
+  .hidden{ display:none !important; }
+
+  /* =========================
+     GAME 1: CROSSWORD
+  ========================= */
+  .layout{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:14px;
+    margin-top:12px;
+  }
+
+  @media (min-width: 980px){
+    .layout{
+      grid-template-columns: 560px 1fr;
+      align-items:start;
+    }
+  }
+
+  .gridWrap{
+    display:inline-block;
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:14px;
+    padding:12px;
+  }
+
+  #cwGrid{
+    display:grid;
+    gap: var(--gap);
+    justify-content:center;
+    touch-action:none;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+
+  .cwCell{
+    width: var(--cell);
+    height: var(--cell);
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+
+  .cwCell.block{
+    background:#111;
+    border:1px solid #111;
+  }
+
+  .cwCell .num{
     position:absolute;
-    inset:0;
-    width:100%;
-    height:100%;
+    top:3px;
+    left:5px;
+    font-size:10px;
+    font-weight:900;
+    color:#666;
     pointer-events:none;
   }
 
-  .word-list{
-    max-width:680px;
-    margin:0 auto;
-    line-height: 1.9;
+  .cwCell input{
+    width:100%;
+    height:100%;
+    border:1px solid #cfcfcf;
+    border-radius:10px;
+    background:#fff;
+    text-align:center;
+    font-weight:900;
+    font-size: calc(var(--cell) * 0.55);
+    outline:none;
+    padding:0;
+    margin:0;
+    text-transform: uppercase;
+    touch-action:none;
   }
 
-  .word{
+  .cwCell input:focus{
+    border-color:#111;
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.10);
+  }
+
+  .cwCell.active input{
+    background:#fff7e6;
+    border-color:#f0c36d;
+  }
+
+  .cwCell.correct input{
+    background:#ecfff1;
+    border-color:#34a853;
+    box-shadow:none;
+  }
+
+  .panel{
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:14px;
+    padding:12px;
+    text-align:left;
+  }
+
+  .panel h3{
+    margin: 6px 0 8px;
+    font-size:16px;
+  }
+
+  .clues{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:10px;
+  }
+
+  @media (min-width: 980px){
+    .clues{ grid-template-columns: 1fr 1fr; }
+  }
+
+  .clueCol{
+    border:1px solid #eee;
+    border-radius:12px;
+    padding:10px;
+  }
+
+  .clueCol h4{
+    margin:0 0 8px;
+    font-size:14px;
+  }
+
+  .clue{
+    margin: 7px 0;
+    line-height:1.35;
+    font-size:13px;
+  }
+
+  .clue b{
     display:inline-block;
-    margin:6px 10px;
-    font-weight:800;
-    letter-spacing:0.4px;
+    min-width: 26px;
   }
 
-  .word.found{
-    text-decoration:line-through;
-    color:#777;
+  .btnRow{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-top:12px;
+  }
+
+  /* =========================
+     GAME 2: CIPHER
+  ========================= */
+  .cipherBox{
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: 2px;
+    word-break: break-word;
+    margin: 12px 0;
+  }
+
+  .cipherInput{
+    width: 100%;
+    max-width: 780px;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    outline:none;
+    text-transform: uppercase;
+  }
+
+  .cipherInput:focus{
+    border-color:#111;
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.10);
+  }
+
+  @media(max-width:420px){
+    .slot, .tile{ width:40px; height:40px; font-size:18px; }
   }
 </style>
 </head>
 
 <body>
-  <h2>Trova tutte le parole!</h2>
-  <div class="hint">Trascina per selezionare (↔ ↕ ↘ ↗). Rilascia per confermare.</div>
+<div class="wrap">
 
-  <div class="bar">
-    <div class="chip" id="progress">0 / 37</div>
+  <!-- ======= ANAGRAM ALWAYS VISIBLE ======= -->
+  <div class="card">
+    <div class="topRow">
+      <div style="font-weight:900;">Anagramma finale</div>
+      <div class="chip" id="unlockedChip">Lettere sbloccate: 0 / 7</div>
+    </div>
+
+    <div class="slots" id="anaSlots"></div>
+    <div class="sub" style="text-align:center; margin:10px 0 0;">
+      Trascina le lettere sbloccate negli spazi. Finché non le sblocchi tutte, non puoi completare la parola.
+    </div>
+    <div class="pool" id="anaPool"></div>
+
+    <div class="btnRow">
+      <button class="secondary" id="anaResetBtn">Reset anagramma</button>
+      <button id="anaCheckBtn">Controlla</button>
+    </div>
+    <div class="msg" id="anaMsg"></div>
   </div>
 
-  <div id="gridWrap">
-    <div id="grid"></div>
-    <svg id="overlay"></svg>
+  <!-- ======= NAV ======= -->
+  <div class="navRow">
+    <button class="secondary" id="prevBtn">◀ Gioco precedente</button>
+    <button id="nextBtn">Gioco successivo ▶</button>
   </div>
 
-  <div class="word-list" id="wordList"></div>
+  <!-- ======= GAME 1 ======= -->
+  <div class="card" id="game1">
+    <div class="gameTitle">Gioco 1 — Cruciverba</div>
+    <div class="sub">Completa il cruciverba: le parole corrette diventano verdi.</div>
+
+    <div class="chip" id="cwProgress">0 / 10 parole corrette</div>
+
+    <div class="layout">
+      <div class="gridWrap">
+        <div id="cwGrid" aria-label="Cruciverba"></div>
+
+        <div class="btnRow">
+          <button class="secondary" id="cwClearBtn">Pulisci</button>
+          <button id="cwCheckBtn">Controlla</button>
+        </div>
+
+        <div class="msg" id="cwBanner"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Definizioni</h3>
+        <div class="clues">
+          <div class="clueCol">
+            <h4>Orizzontali</h4>
+            <div id="cwAcrossClues"></div>
+          </div>
+          <div class="clueCol">
+            <h4>Verticali</h4>
+            <div id="cwDownClues"></div>
+          </div>
+        </div>
+        <div class="sub" style="margin-top:10px;">
+          Tip: tocca una casella e scrivi. Con Backspace torni indietro.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= GAME 2 ======= -->
+  <div class="card hidden" id="game2">
+    <div class="gameTitle">Gioco 2 — Cifrario</div>
+    <div class="sub">
+      Ogni lettera è stata spostata di <b>+3</b> nell’alfabeto. Per decodificare, sposta di <b>-3</b>.
+    </div>
+
+    <div class="cipherBox" id="cipherText">O'DPRU FKH PXRYH LO VROH H OH DOWUH VWHOOH</div>
+
+    <input class="cipherInput" id="cipherAnswer" placeholder="Inserisci la frase decodificata (con apostrofo)" />
+
+    <div class="btnRow">
+      <button class="secondary" id="cipherClearBtn">Pulisci</button>
+      <button id="cipherCheckBtn">Controlla</button>
+    </div>
+
+    <div class="msg" id="cipherMsg"></div>
+  </div>
+
+</div>
 
 <script>
-/* =========================
-   PUZZLE HARDCODED
-========================= */
-const gridData = [
-  ["E","A","A","S","U","A","C","A","P","O","O","A"],
-  ["D","R","I","D","E","R","E","C","T","E","D","R"],
-  ["N","D","E","C","L","E","I","T","A","N","N","M"],
-  ["A","O","A","G","E","S","E","A","P","F","O","A"],
-  ["R","P","S","T","N","R","P","U","R","O","F","R"],
-  ["G","O","B","U","I","O","N","A","M","U","B","E"],
-  ["S","N","A","D","N","A","M","O","D","E","A","I"],
-  ["O","U","O","N","N","A","T","I","R","E","V","P"],
-  ["A","P","D","I","P","G","B","E","L","L","O","S"],
-  ["I","R","R","R","I","V","E","L","A","R","E","E"],
-  ["Z","D","I","O","U","O","M","O","U","N","O","D"],
-  ["A","E","N","A","C","C","E","T","T","A","R","E"]
-];
+/* =========================================================
+   STORAGE + GLOBALS
+========================================================= */
+const FINAL_WORD = "CARAIBI";
+const STORAGE_UNLOCKED = "unlocked_letters";      // JSON array, es. ["C","A"]
+const STORAGE_ANAGRAM = "anagram_state";          // JSON { slots:[...] }
+const STORAGE_GAME_DONE = "games_done";           // JSON object { game1:true, game2:true, ... }
+const STORAGE_CURRENT_GAME = "current_game";      // "game1" / "game2" / ...
 
-const words = [
-  "VERITA","LEI","PACE","CORPO","PAURA","DIRETTO","GRANDE","USO",
-  "ACCETTARE","DOMANDA","PIU","DIO","CAUSA","BELLO","REGNO",
-  "CAFFE","RIVELARE","ARMARE","UOMO","NOI","FONDO","SEDE",
-  "UMANO","SUD","CAPO","PURO","ARIA","RIDERE","PENA","DOPO",
-  "PAESE","BUIO","BERE","ANNO","ZIA","DON","CANE"
-];
-
-const wordSet = new Set(words);
-const GRID_SIZE = gridData.length;
-
-/* =========================
-   DOM
-========================= */
-const gridWrapEl = document.getElementById("gridWrap");
-const gridEl = document.getElementById("grid");
-const overlayEl = document.getElementById("overlay");
-const wordListEl = document.getElementById("wordList");
-const progressEl = document.getElementById("progress");
-
-/* =========================
-   RESPONSIVE SIZE
-========================= */
-function setResponsiveCellSize(){
-  const padding = 24;
-  const maxWidth = Math.min(window.innerWidth, 520) - padding;
-  const gap = 3;
-
-  const cell = Math.floor((maxWidth - gap*(GRID_SIZE-1)) / GRID_SIZE);
-  const clamped = Math.max(26, Math.min(cell, 50));
-
-  document.documentElement.style.setProperty("--cell", clamped + "px");
-  document.documentElement.style.setProperty("--gap", gap + "px");
-
-  gridEl.style.gridTemplateColumns = `repeat(${GRID_SIZE}, var(--cell))`;
-
-  syncOverlaySize();
-  redrawFoundCapsules();
+function safeParseJSON(raw, fallback){
+  try{
+    const x = JSON.parse(raw);
+    return (x === null || x === undefined) ? fallback : x;
+  }catch{
+    return fallback;
+  }
 }
 
-window.addEventListener("resize", setResponsiveCellSize);
-
-function getCellSizePx(){
-  const v = getComputedStyle(document.documentElement).getPropertyValue("--cell").trim();
-  return parseFloat(v.replace("px","")) || 34;
+function getUnlocked(){
+  const raw = localStorage.getItem(STORAGE_UNLOCKED);
+  const arr = safeParseJSON(raw, []);
+  return Array.isArray(arr) ? arr.map(x => String(x).toUpperCase()) : [];
 }
 
-/* =========================
-   BUILD UI
-========================= */
-function buildGrid(){
-  gridEl.innerHTML = "";
-  for(let r=0;r<GRID_SIZE;r++){
-    for(let c=0;c<GRID_SIZE;c++){
-      const cell = document.createElement("div");
-      cell.className = "cell";
-      cell.textContent = gridData[r][c];
-      cell.dataset.row = r;
-      cell.dataset.col = c;
-      gridEl.appendChild(cell);
+function setUnlocked(arr){
+  const unique = Array.from(new Set(arr.map(x => String(x).toUpperCase())));
+  localStorage.setItem(STORAGE_UNLOCKED, JSON.stringify(unique));
+  updateUnlockedChip();
+}
+
+function unlockLetters(letters){
+  const cur = getUnlocked();
+  let changed = false;
+  for(const L of letters){
+    const u = String(L).toUpperCase();
+    if(!cur.includes(u)){
+      cur.push(u);
+      changed = true;
     }
   }
+  if(changed) setUnlocked(cur);
 }
 
-function buildWordList(){
-  wordListEl.innerHTML = "";
-  for(const w of words){
-    const span = document.createElement("span");
-    span.className = "word";
-    span.id = "word-" + w;
-    span.textContent = w;
-    wordListEl.appendChild(span);
+function getGamesDone(){
+  const raw = localStorage.getItem(STORAGE_GAME_DONE);
+  const obj = safeParseJSON(raw, {});
+  return (obj && typeof obj === "object") ? obj : {};
+}
+
+function setGameDone(gameId){
+  const obj = getGamesDone();
+  if(!obj[gameId]){
+    obj[gameId] = true;
+    localStorage.setItem(STORAGE_GAME_DONE, JSON.stringify(obj));
   }
 }
 
-function updateProgress(){
-  progressEl.textContent = `${foundWords.size} / ${words.length}`;
+/* =========================================================
+   ANAGRAM WIDGET (always visible)
+========================================================= */
+const anaSlotsEl = document.getElementById("anaSlots");
+const anaPoolEl  = document.getElementById("anaPool");
+const anaMsgEl   = document.getElementById("anaMsg");
+const unlockedChipEl = document.getElementById("unlockedChip");
+
+let anaSlots = Array(FINAL_WORD.length).fill(null);
+
+function updateUnlockedChip(){
+  const cur = getUnlocked();
+  unlockedChipEl.textContent = `Lettere sbloccate: ${cur.length} / 7`;
 }
 
-/* =========================
-   OVERLAY HELPERS
-========================= */
-function syncOverlaySize(){
-  const rect = gridEl.getBoundingClientRect();
-  overlayEl.setAttribute("width", rect.width);
-  overlayEl.setAttribute("height", rect.height);
-  overlayEl.setAttribute("viewBox", `0 0 ${rect.width} ${rect.height}`);
+function loadAnagram(){
+  const raw = localStorage.getItem(STORAGE_ANAGRAM);
+  const obj = safeParseJSON(raw, null);
+  if(obj && Array.isArray(obj.slots) && obj.slots.length === FINAL_WORD.length){
+    anaSlots = obj.slots.map(x => x ? String(x).toUpperCase() : null);
+  }
 }
 
-function cellCenterPx(r, c){
-  const cell = document.querySelector(`.cell[data-row='${r}'][data-col='${c}']`);
-  const gridRect = gridEl.getBoundingClientRect();
-  const rect = cell.getBoundingClientRect();
-  const x = (rect.left - gridRect.left) + rect.width/2;
-  const y = (rect.top  - gridRect.top ) + rect.height/2;
-  return {x, y};
+function saveAnagram(){
+  localStorage.setItem(STORAGE_ANAGRAM, JSON.stringify({ slots: anaSlots }));
 }
 
-/* =========================
-   CAPSULE (solo contorno)
-========================= */
-function makeCapsuleOutline(x1, y1, x2, y2, cellPx, opts = {}) {
-  const ns = "http://www.w3.org/2000/svg";
-
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-
-  const dist = Math.hypot(dx, dy);
-  const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-
-  // altezza capsula in funzione della cella (regola qui)
-  const h = (opts.heightFactor ?? 0.78) * cellPx;
-
-  // padding extra in lunghezza (regola qui)
-  const pad = (opts.lengthPadFactor ?? 0.45) * cellPx;
-
-  const w = dist + pad;
-
-  const cx = (x1 + x2) / 2;
-  const cy = (y1 + y2) / 2;
-
-  const rect = document.createElementNS(ns, "rect");
-  rect.setAttribute("x", -w / 2);
-  rect.setAttribute("y", -h / 2);
-  rect.setAttribute("width", w);
-  rect.setAttribute("height", h);
-  rect.setAttribute("rx", h / 2);
-  rect.setAttribute("ry", h / 2);
-
-  // SOLO CONTORNO
-  rect.setAttribute("fill", "transparent");
-  rect.setAttribute("stroke", opts.stroke ?? "#f5b301");
-  rect.setAttribute("stroke-width", opts.strokeWidth ?? Math.max(3, Math.round(cellPx * 0.12)));
-  rect.setAttribute("opacity", opts.opacity ?? "0.95");
-
-  rect.setAttribute("pointer-events", "none");
-  rect.setAttribute("transform", `translate(${cx} ${cy}) rotate(${angle})`);
-
-  return rect;
+function computeAnaPool(){
+  const unlocked = getUnlocked();
+  const placed = anaSlots.filter(Boolean);
+  const pool = unlocked.slice();
+  for(const p of placed){
+    const idx = pool.indexOf(p);
+    if(idx >= 0) pool.splice(idx, 1);
+  }
+  return pool;
 }
 
-/* =========================
-   GAME STATE
-========================= */
-let isDragging = false;
-let activePointerId = null;
-let startPos = null;
-let currentPos = null;
-let lockedDir = null;
+function renderAnagram(){
+  updateUnlockedChip();
+  anaMsgEl.textContent = "";
+  anaMsgEl.className = "msg";
 
-let previewShape = null; // rect preview
+  anaSlotsEl.innerHTML = "";
+  for(let i=0;i<FINAL_WORD.length;i++){
+    const slot = document.createElement("div");
+    slot.className = "slot " + (anaSlots[i] ? "filled" : "empty");
+    slot.dataset.idx = i;
+    if(anaSlots[i]) slot.textContent = anaSlots[i];
 
-const foundWords = new Set();
-const foundCapsules = []; // { word, start:{r,c}, end:{r,c} }
+    // tap slot pieno -> rimuovi
+    slot.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      if(!anaSlots[i]) return;
+      anaSlots[i] = null;
+      saveAnagram();
+      renderAnagram();
+    });
 
-function getCellFromPoint(x, y){
-  const el = document.elementFromPoint(x, y);
-  if(!el || !el.classList.contains("cell")) return null;
-  return el;
-}
-
-function parseCell(el){
-  return { r: parseInt(el.dataset.row, 10), c: parseInt(el.dataset.col, 10) };
-}
-
-function snapDirection(dr, dc){
-  if(dr === 0 && dc === 0) return null;
-
-  const adr = Math.abs(dr);
-  const adc = Math.abs(dc);
-
-  if(adr === 0) return {dr: 0, dc: Math.sign(dc)};
-  if(adc === 0) return {dr: Math.sign(dr), dc: 0};
-
-  if(Math.abs(adr - adc) <= 1){
-    return {dr: Math.sign(dr), dc: Math.sign(dc)};
+    anaSlotsEl.appendChild(slot);
   }
 
-  if(adr > adc) return {dr: Math.sign(dr), dc: 0};
-  return {dr: 0, dc: Math.sign(dc)};
+  const pool = computeAnaPool();
+  anaPoolEl.innerHTML = "";
+  pool.forEach((ch) => {
+    const tile = document.createElement("div");
+    tile.className = "tile";
+    tile.textContent = ch;
+    tile.addEventListener("pointerdown", (e) => startAnaDrag(e, ch));
+    anaPoolEl.appendChild(tile);
+  });
 }
 
-function buildLineCells(start, end, dir){
+let anaDragging = null;
+function startAnaDrag(e, letter){
+  e.preventDefault();
+  anaDragging = { letter };
+  window.addEventListener("pointerup", endAnaDrag, { once:true });
+}
+function endAnaDrag(e){
+  if(!anaDragging) return;
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const slot = el?.classList?.contains("slot") ? el : el?.closest?.(".slot");
+  if(slot){
+    const idx = parseInt(slot.dataset.idx, 10);
+    if(!anaSlots[idx]){
+      anaSlots[idx] = anaDragging.letter;
+      saveAnagram();
+    }
+  }
+  anaDragging = null;
+  renderAnagram();
+}
+
+document.getElementById("anaResetBtn").addEventListener("click", () => {
+  anaSlots = Array(FINAL_WORD.length).fill(null);
+  saveAnagram();
+  renderAnagram();
+});
+
+document.getElementById("anaCheckBtn").addEventListener("click", () => {
+  const unlocked = getUnlocked();
+  if(unlocked.length < FINAL_WORD.length){
+    anaMsgEl.textContent = "Non puoi completarlo: ti mancano ancora delle lettere sbloccate.";
+    anaMsgEl.className = "msg bad";
+    return;
+  }
+  if(anaSlots.some(x => !x)){
+    anaMsgEl.textContent = "Completa tutti gli spazi prima di controllare.";
+    anaMsgEl.className = "msg bad";
+    return;
+  }
+  const guess = anaSlots.join("");
+  if(guess === FINAL_WORD){
+    anaMsgEl.textContent = "✅ Anagramma completato!";
+    anaMsgEl.className = "msg ok";
+  }else{
+    anaMsgEl.textContent = "❌ Non è corretto. Riprova.";
+    anaMsgEl.className = "msg bad";
+  }
+});
+
+/* =========================================================
+   NAVIGATION (single HTML, multiple games)
+========================================================= */
+const games = ["game1", "game2"]; // aggiungerai game3..game7
+let currentGameIndex = 0;
+
+function showGameByIndex(idx){
+  currentGameIndex = Math.max(0, Math.min(idx, games.length - 1));
+  for(let i=0;i<games.length;i++){
+    document.getElementById(games[i]).classList.toggle("hidden", i !== currentGameIndex);
+  }
+  document.getElementById("prevBtn").disabled = (currentGameIndex === 0);
+  document.getElementById("nextBtn").disabled = (currentGameIndex === games.length - 1);
+
+  localStorage.setItem(STORAGE_CURRENT_GAME, games[currentGameIndex]);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+document.getElementById("prevBtn").addEventListener("click", () => showGameByIndex(currentGameIndex - 1));
+document.getElementById("nextBtn").addEventListener("click", () => showGameByIndex(currentGameIndex + 1));
+
+function restoreCurrentGame(){
+  const saved = localStorage.getItem(STORAGE_CURRENT_GAME);
+  const idx = games.indexOf(saved);
+  showGameByIndex(idx >= 0 ? idx : 0);
+}
+
+/* =========================================================
+   GAME 1: CROSSWORD (same as your approved one)
+   Reward: unlock "C" but DO NOT show which letter.
+========================================================= */
+const cwGridEl = document.getElementById("cwGrid");
+const cwAcrossEl = document.getElementById("cwAcrossClues");
+const cwDownEl = document.getElementById("cwDownClues");
+const cwProgressEl = document.getElementById("cwProgress");
+const cwBanner = document.getElementById("cwBanner");
+
+const CW_GRID = [
+  "##EMPIRICO###",
+  "######O######",
+  "####SEMANTICA",
+  "######A#####N",
+  "ETICA#N#####A",
+  "##P###T#S#C#L",
+  "##ESPLICITO#O",
+  "##R###C#N#E#G",
+  "##B###O#T#R#I",
+  "##O#####A#E#A",
+  "##L#####S#N##",
+  "##E#####S#Z##",
+  "####CRITICA##"
+];
+const CW_N = 13;
+
+const CW_NUM_MAP = new Map([
+  ["0,2","1"],
+  ["0,6","2"],
+  ["2,4","3"],
+  ["2,12","4"],
+  ["4,0","5"],
+  ["4,2","6"],
+  ["5,8","7"],
+  ["5,10","8"],
+  ["6,2","9"],
+  ["12,4","10"]
+]);
+
+const CW_WORDS = [
+  { num:1, dir:"A", answer:"EMPIRICO", clue:"Basato sull’esperienza e sull’osservazione.", start:[0,2] },
+  { num:3, dir:"A", answer:"SEMANTICA", clue:"Ramo della linguistica che studia il significato.", start:[2,4] },
+  { num:5, dir:"A", answer:"ETICA", clue:"Disciplina che riflette su principi e comportamenti morali.", start:[4,0] },
+  { num:9, dir:"A", answer:"ESPLICITO", clue:"Detto in modo chiaro, non sottinteso (opposto di implicito).", start:[6,2] },
+  { num:10, dir:"A", answer:"CRITICA", clue:"Capacità di valutare con giudizio, analizzando pro e contro.", start:[12,4] },
+  { num:2, dir:"D", answer:"ROMANTICO", clue:"Relativo al Romanticismo, corrente culturale dell’Ottocento.", start:[0,6] },
+  { num:4, dir:"D", answer:"ANALOGIA", clue:"Rapporto di somiglianza tra elementi; procedimento per confronto.", start:[2,12] },
+  { num:6, dir:"D", answer:"IPERBOLE", clue:"Figura retorica che consiste nell’esagerazione.", start:[4,2] },
+  { num:7, dir:"D", answer:"SINTASSI", clue:"Parte della grammatica che studia la struttura della frase.", start:[5,8] },
+  { num:8, dir:"D", answer:"COERENZA", clue:"Qualità di ciò che è logico e non contraddittorio.", start:[5,10] }
+];
+
+const CW_TOTAL = CW_WORDS.length;
+const cwFound = new Set();
+
+function cwSetResponsiveCellSize(){
+  const padding = 40;
+  const maxWidth = Math.min(window.innerWidth, 640) - padding;
+  const gap = 3;
+  const cell = Math.floor((maxWidth - gap*(CW_N-1)) / CW_N);
+  const clamped = Math.max(22, Math.min(cell, 40));
+  document.documentElement.style.setProperty("--cell", clamped + "px");
+  document.documentElement.style.setProperty("--gap", gap + "px");
+  cwGridEl.style.gridTemplateColumns = `repeat(${CW_N}, var(--cell))`;
+}
+window.addEventListener("resize", cwSetResponsiveCellSize);
+
+function cwWordCells(w){
+  const [sr,sc] = w.start;
+  const dr = (w.dir==="D") ? 1 : 0;
+  const dc = (w.dir==="A") ? 1 : 0;
   const cells = [];
-  const steps = Math.max(Math.abs(end.r - start.r), Math.abs(end.c - start.c));
-  let r = start.r, c = start.c;
-
-  for(let i=0;i<=steps;i++){
-    if(r < 0 || r >= GRID_SIZE || c < 0 || c >= GRID_SIZE) break;
-    cells.push({r,c});
-    r += dir.dr;
-    c += dir.dc;
+  for(let i=0;i<w.answer.length;i++){
+    cells.push([sr + dr*i, sc + dc*i]);
   }
   return cells;
 }
 
-function wordFromCells(cells){
-  let s = "";
-  for(const p of cells) s += gridData[p.r][p.c];
-  return s;
+function cwIsBlock(r,c){
+  return r<0 || c<0 || r>=CW_N || c>=CW_N || CW_GRID[r][c]==="#";
+}
+function cwGetInput(r,c){
+  return document.querySelector(`#cwGrid input[data-r='${r}'][data-c='${c}']`);
 }
 
-/* =========================
-   PREVIEW CAPSULE
-========================= */
-function clearPreview(){
-  if(previewShape){
-    previewShape.remove();
-    previewShape = null;
+function cwFocusNext(r,c){
+  for(let cc=c+1; cc<CW_N; cc++){
+    if(!cwIsBlock(r,cc)){ cwGetInput(r,cc)?.focus(); return; }
+  }
+  for(let rr=r+1; rr<CW_N; rr++){
+    for(let cc=0; cc<CW_N; cc++){
+      if(!cwIsBlock(rr,cc)){ cwGetInput(rr,cc)?.focus(); return; }
+    }
+  }
+}
+function cwFocusPrev(r,c){
+  for(let cc=c-1; cc>=0; cc--){
+    if(!cwIsBlock(r,cc)){ cwGetInput(r,cc)?.focus(); return; }
+  }
+  for(let rr=r-1; rr>=0; rr--){
+    for(let cc=CW_N-1; cc>=0; cc--){
+      if(!cwIsBlock(rr,cc)){ cwGetInput(rr,cc)?.focus(); return; }
+    }
   }
 }
 
-function drawPreviewCapsule(startRC, endRC){
-  clearPreview();
-
-  const a = cellCenterPx(startRC.r, startRC.c);
-  const b = cellCenterPx(endRC.r, endRC.c);
-  const cellPx = getCellSizePx();
-
-  previewShape = makeCapsuleOutline(a.x, a.y, b.x, b.y, cellPx, {
-    stroke: "#9e9e9e",
-    opacity: "0.65",
-    heightFactor: 0.78,
-    lengthPadFactor: 0.45
-  });
-
-  overlayEl.appendChild(previewShape);
+function cwClearActive(){
+  document.querySelectorAll("#cwGrid .cwCell.active").forEach(el => el.classList.remove("active"));
 }
-
-/* =========================
-   FOUND CAPSULES
-========================= */
-function redrawFoundCapsules(){
-  const keepPreview = !!previewShape;
-
-  overlayEl.innerHTML = "";
-  previewShape = null;
-
-  const cellPx = getCellSizePx();
-
-  for(const def of foundCapsules){
-    const a = cellCenterPx(def.start.r, def.start.c);
-    const b = cellCenterPx(def.end.r, def.end.c);
-
-    const cap = makeCapsuleOutline(a.x, a.y, b.x, b.y, cellPx, {
-      stroke: "#f5b301",
-      opacity: "0.95",
-      heightFactor: 0.78,
-      lengthPadFactor: 0.45
-    });
-
-    overlayEl.appendChild(cap);
-  }
-
-  if(keepPreview && startPos && currentPos){
-    // ridisegna preview se stavi trascinando durante resize
-    drawPreviewCapsule(startPos, currentPos);
+function cwCellKey(r,c){ return `${r},${c}`; }
+function cwHighlightActive(r,c){
+  cwClearActive();
+  const k = cwCellKey(r,c);
+  for(const w of CW_WORDS){
+    const cells = cwWordCells(w);
+    if(cells.some(([rr,cc]) => cwCellKey(rr,cc)===k)){
+      for(const [rr,cc] of cells){
+        const cellEl = document.querySelector(`#cwGrid .cwCell[data-r='${rr}'][data-c='${cc}']`);
+        if(cellEl) cellEl.classList.add("active");
+      }
+    }
   }
 }
 
-function markFound(word, cells){
-  foundWords.add(word);
+function cwReadWord(w){
+  const cells = cwWordCells(w);
+  let s="";
+  for(const [r,c] of cells){
+    s += (cwGetInput(r,c)?.value || "");
+  }
+  return s.toUpperCase();
+}
 
-  const wEl = document.getElementById("word-" + word);
-  if(wEl) wEl.classList.add("found");
-
-  foundCapsules.push({
-    word,
-    start: cells[0],
-    end: cells[cells.length - 1]
-  });
-
-  redrawFoundCapsules();
-  updateProgress();
-
-  if(foundWords.size === words.length){
-    setTimeout(() => alert("Hai trovato tutte le parole!"), 150);
+function cwSetWordCorrect(w, ok){
+  const cells = cwWordCells(w);
+  for(const [r,c] of cells){
+    const cellEl = document.querySelector(`#cwGrid .cwCell[data-r='${r}'][data-c='${c}']`);
+    if(cellEl) cellEl.classList.toggle("correct", ok);
   }
 }
 
-/* =========================
-   POINTER EVENTS (DRAG)
-========================= */
-gridWrapEl.addEventListener("pointerdown", (e) => {
-  const cellEl = getCellFromPoint(e.clientX, e.clientY);
-  if(!cellEl) return;
+function cwBuildClues(){
+  cwAcrossEl.innerHTML = "";
+  cwDownEl.innerHTML = "";
+  const across = CW_WORDS.filter(w=>w.dir==="A").sort((a,b)=>a.num-b.num);
+  const down = CW_WORDS.filter(w=>w.dir==="D").sort((a,b)=>a.num-b.num);
 
-  e.preventDefault();
-  gridWrapEl.setPointerCapture(e.pointerId);
+  for(const w of across){
+    const div = document.createElement("div");
+    div.className = "clue";
+    div.innerHTML = `<b>${w.num}.</b> ${w.clue}`;
+    cwAcrossEl.appendChild(div);
+  }
+  for(const w of down){
+    const div = document.createElement("div");
+    div.className = "clue";
+    div.innerHTML = `<b>${w.num}.</b> ${w.clue}`;
+    cwDownEl.appendChild(div);
+  }
+}
 
-  isDragging = true;
-  activePointerId = e.pointerId;
-  lockedDir = null;
+function cwBuildGrid(){
+  cwGridEl.innerHTML = "";
+  for(let r=0;r<CW_N;r++){
+    for(let c=0;c<CW_N;c++){
+      const ch = CW_GRID[r][c];
+      const cell = document.createElement("div");
+      cell.className = "cwCell";
+      cell.dataset.r = r;
+      cell.dataset.c = c;
 
-  startPos = parseCell(cellEl);
-  currentPos = {...startPos};
+      if(ch === "#"){
+        cell.classList.add("block");
+        cwGridEl.appendChild(cell);
+        continue;
+      }
 
-  clearPreview();
+      const num = CW_NUM_MAP.get(`${r},${c}`);
+      if(num){
+        const n = document.createElement("div");
+        n.className = "num";
+        n.textContent = num;
+        cell.appendChild(n);
+      }
+
+      const input = document.createElement("input");
+      input.maxLength = 1;
+      input.autocomplete = "off";
+      input.inputMode = "text";
+      input.dataset.r = r;
+      input.dataset.c = c;
+
+      input.addEventListener("input", (e) => {
+        const v = (e.target.value || "").toUpperCase();
+        e.target.value = v.replace(/[^A-Z]/g,"").slice(0,1);
+        cwValidateAll();
+        if(e.target.value) cwFocusNext(r,c);
+      });
+
+      input.addEventListener("keydown", (e) => {
+        if(e.key === "Backspace" && !e.target.value){
+          cwFocusPrev(r,c);
+        }
+      });
+
+      input.addEventListener("focus", () => cwHighlightActive(r,c));
+
+      cell.appendChild(input);
+      cwGridEl.appendChild(cell);
+    }
+  }
+}
+
+function cwValidateAll(){
+  let correctCount = 0;
+
+  for(const w of CW_WORDS){
+    const typed = cwReadWord(w);
+    const key = `${w.dir}${w.num}`;
+    const ok = (typed.length === w.answer.length && typed === w.answer);
+    if(ok){ correctCount++; cwFound.add(key); } else { cwFound.delete(key); }
+    cwSetWordCorrect(w, ok);
+  }
+
+  cwProgressEl.textContent = `${correctCount} / ${CW_TOTAL} parole corrette`;
+
+  if(correctCount === CW_TOTAL){
+    // unlock reward for game1, but don't reveal which letter
+    const done = getGamesDone();
+    if(!done.game1){
+      unlockLetters(["C"]);
+      setGameDone("game1");
+    }
+    const unlockedNow = getUnlocked().length;
+    cwBanner.textContent = `✅ Completato! Hai sbloccato ${unlockedNow} lettere.`;
+    cwBanner.className = "msg ok";
+    renderAnagram();
+  }else{
+    // keep banner only if error msg is present from manual check; otherwise clear ok banner
+    if(cwBanner.classList.contains("ok")){
+      cwBanner.textContent = "";
+      cwBanner.className = "msg";
+    }
+  }
+}
+
+document.getElementById("cwClearBtn").addEventListener("click", () => {
+  document.querySelectorAll("#cwGrid input").forEach(i => i.value = "");
+  cwBanner.textContent = "";
+  cwBanner.className = "msg";
+  cwValidateAll();
 });
 
-gridWrapEl.addEventListener("pointermove", (e) => {
-  if(!isDragging || e.pointerId !== activePointerId) return;
-
-  const cellEl = getCellFromPoint(e.clientX, e.clientY);
-  if(!cellEl) return;
-
-  const pos = parseCell(cellEl);
-  if(currentPos && pos.r === currentPos.r && pos.c === currentPos.c) return;
-  currentPos = pos;
-
-  const drRaw = currentPos.r - startPos.r;
-  const dcRaw = currentPos.c - startPos.c;
-
-  if(!lockedDir){
-    const dir = snapDirection(drRaw, dcRaw);
-    if(!dir) return;
-    lockedDir = dir;
-  }
-
-  const cells = buildLineCells(startPos, currentPos, lockedDir);
-  if(cells.length >= 2){
-    drawPreviewCapsule(cells[0], cells[cells.length - 1]);
-  } else {
-    clearPreview();
+document.getElementById("cwCheckBtn").addEventListener("click", () => {
+  cwValidateAll();
+  if(cwFound.size !== CW_TOTAL){
+    cwBanner.textContent = "Non ancora: ci sono parole incomplete o errate.";
+    cwBanner.className = "msg bad";
   }
 });
 
-function finishSelection(){
-  if(!isDragging) return;
-  isDragging = false;
+/* =========================================================
+   GAME 2: CIPHER
+   Reward: unlock "A" but DO NOT show which letter.
+   Keep apostrophe.
+========================================================= */
+const cipherAnswerEl = document.getElementById("cipherAnswer");
+const cipherMsgEl = document.getElementById("cipherMsg");
 
-  if(!startPos || !currentPos || !lockedDir){
-    clearPreview();
-    startPos = null; currentPos = null; lockedDir = null;
-    return;
-  }
+const CIPHER_EXPECTED = "L'AMOR CHE MUOVE IL SOLE E LE ALTRE STELLE";
 
-  const cells = buildLineCells(startPos, currentPos, lockedDir);
-  clearPreview();
-
-  if(cells.length <= 1){
-    startPos = null; currentPos = null; lockedDir = null;
-    return;
-  }
-
-  const w = wordFromCells(cells);
-  const rev = w.split("").reverse().join("");
-
-  if(wordSet.has(w) && !foundWords.has(w)){
-    markFound(w, cells);
-  } else if(wordSet.has(rev) && !foundWords.has(rev)){
-    markFound(rev, cells);
-  }
-
-  startPos = null; currentPos = null; lockedDir = null;
+function normalizeCipherInput(s){
+  // UPPERCASE; keep apostrophe; collapse multiple spaces; trim
+  return String(s || "")
+    .toUpperCase()
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-gridWrapEl.addEventListener("pointerup", (e) => {
-  if(e.pointerId !== activePointerId) return;
-  e.preventDefault();
-  finishSelection();
+document.getElementById("cipherClearBtn").addEventListener("click", () => {
+  cipherAnswerEl.value = "";
+  cipherMsgEl.textContent = "";
+  cipherMsgEl.className = "msg";
 });
 
-gridWrapEl.addEventListener("pointercancel", (e) => {
-  if(e.pointerId !== activePointerId) return;
-  finishSelection();
+document.getElementById("cipherCheckBtn").addEventListener("click", () => {
+  const typed = normalizeCipherInput(cipherAnswerEl.value);
+  const expected = normalizeCipherInput(CIPHER_EXPECTED);
+
+  if(typed === expected){
+    const done = getGamesDone();
+    if(!done.game2){
+      unlockLetters(["A"]);
+      setGameDone("game2");
+    }
+    const unlockedNow = getUnlocked().length;
+    cipherMsgEl.textContent = `✅ Corretto! Hai sbloccato ${unlockedNow} lettere.`;
+    cipherMsgEl.className = "msg ok";
+    renderAnagram();
+  }else{
+    cipherMsgEl.textContent = "❌ Non è corretto.";
+    cipherMsgEl.className = "msg bad";
+  }
 });
 
-/* =========================
+/* =========================================================
    INIT
-========================= */
-buildGrid();
-buildWordList();
-updateProgress();
-setResponsiveCellSize();
-syncOverlaySize();
-redrawFoundCapsules();
+========================================================= */
+function init(){
+  // anagram
+  loadAnagram();
+  updateUnlockedChip();
+  renderAnagram();
+
+  // crossword
+  cwSetResponsiveCellSize();
+  cwBuildClues();
+  cwBuildGrid();
+  cwValidateAll();
+
+  // restore current game
+  restoreCurrentGame();
+}
+init();
 </script>
 </body>
 </html>
-
