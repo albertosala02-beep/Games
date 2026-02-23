@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Word Search - ANTIGUA</title>
+
+<style>
+  body{
+    font-family: Arial, sans-serif;
+    text-align:center;
+    background:#f2f2f2;
+    margin:0;
+    padding:12px;
+  }
+  h2{ margin:10px 0 6px; }
+
+  #grid{
+    display:grid;
+    grid-template-columns: repeat(12, 34px);
+    gap:3px;
+    justify-content:center;
+    margin:14px auto;
+  }
+
+  .cell{
+    width:34px;
+    height:34px;
+    background:#fff;
+    border:1px solid #cfcfcf;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:800;
+    font-size:18px;
+    user-select:none;
+    -webkit-user-select:none;
+    touch-action:none;          /* <-- fondamentale su mobile */
+    border-radius:6px;
+  }
+
+  .cell.selected{ background:#ffd54f; }
+  .cell.found{ background:#4caf50; color:#fff; border-color:#4caf50; }
+
+  .word-list{
+    max-width:680px;
+    margin:0 auto;
+    line-height: 1.9;
+  }
+  .word{
+    display:inline-block;
+    margin:6px 10px;
+    font-weight:800;
+  }
+  .word.found{ text-decoration:line-through; color:#777; }
+  .hint{ color:#555; font-size:13px; margin-top:6px; }
+</style>
+</head>
+
+<body>
+  <h2>Trova tutte le parole!</h2>
+  <div class="hint">Tocca una cella (inizio) e poi un’altra cella (fine). Solo linee dritte: ↔ ↕ ↘ ↗</div>
+
+  <div id="grid"></div>
+  <div class="word-list" id="wordList"></div>
+
+<script>
+const gridData = [
+  ["E","A","A","S","U","A","C","A","P","O","O","A"],
+  ["D","R","I","D","E","R","E","C","T","E","D","R"],
+  ["N","D","E","C","L","E","I","T","A","N","N","M"],
+  ["A","O","A","G","E","S","E","A","P","F","O","A"],
+  ["R","P","S","T","N","R","P","U","R","O","F","R"],
+  ["G","O","B","U","I","O","N","A","M","U","B","E"],
+  ["S","N","A","D","N","A","M","O","D","E","A","I"],
+  ["O","U","O","N","N","A","T","I","R","E","V","P"],
+  ["A","P","D","I","P","G","B","E","L","L","O","S"],
+  ["I","R","R","R","I","V","E","L","A","R","E","E"],
+  ["Z","D","I","O","U","O","M","O","U","N","O","D"],
+  ["A","E","N","A","C","C","E","T","T","A","R","E"]
+];
+
+const words = [
+  "VERITA","LEI","PACE","CORPO","PAURA","DIRETTO","GRANDE","USO",
+  "ACCETTARE","DOMANDA","PIU","DIO","CAUSA","BELLO","REGNO",
+  "CAFFE","RIVELARE","ARMARE","UOMO","NOI","FONDO","SEDE",
+  "UMANO","SUD","CAPO","PURO","ARIA","RIDERE","PENA","DOPO",
+  "PAESE","BUIO","BERE","ANNO","ZIA","DON","CANE"
+];
+
+// --- state ---
+let startCell = null;       // HTMLElement
+let endCell = null;         // HTMLElement
+let foundWords = new Set();
+
+function buildGrid(){
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
+  for(let r=0;r<gridData.length;r++){
+    for(let c=0;c<gridData[r].length;c++){
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.textContent = gridData[r][c];
+      cell.dataset.row = r;
+      cell.dataset.col = c;
+
+      // pointerdown = meglio di click su mobile
+      cell.addEventListener("pointerdown", (e) => {
+        e.preventDefault();   // evita scrolling/selection strani
+        onPick(cell);
+      });
+
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function buildWordList(){
+  const list = document.getElementById("wordList");
+  list.innerHTML = "";
+  for(const w of words){
+    const span = document.createElement("span");
+    span.className = "word";
+    span.id = "word-" + w;
+    span.textContent = w;
+    list.appendChild(span);
+  }
+}
+
+function onPick(cell){
+  // se tocchi una cella già "found" puoi comunque usarla come selezione (va bene)
+  if(!startCell){
+    startCell = cell;
+    startCell.classList.add("selected");
+    return;
+  }
+
+  // se tocchi la stessa cella, non fare nulla (evita dr=dc=0)
+  if(cell === startCell){
+    return;
+  }
+
+  endCell = cell;
+
+  const result = tryGetLineWord(startCell, endCell);
+  if(!result.ok){
+    // selezione non in linea: reset e riparti da questa cella come start
+    clearSelected();
+    startCell = cell;
+    startCell.classList.add("selected");
+    endCell = null;
+    return;
+  }
+
+  const word = result.word;
+  const rev = word.split("").reverse().join("");
+
+  if(words.includes(word) && !foundWords.has(word)){
+    markFound(word, result.cells);
+  } else if(words.includes(rev) && !foundWords.has(rev)){
+    markFound(rev, result.cells);
+  }
+
+  clearSelected();
+  startCell = null;
+  endCell = null;
+
+  if(foundWords.size === words.length){
+    setTimeout(() => alert("Hai trovato tutte le parole!"), 150);
+  }
+}
+
+function tryGetLineWord(a, b){
+  const r1 = parseInt(a.dataset.row, 10);
+  const c1 = parseInt(a.dataset.col, 10);
+  const r2 = parseInt(b.dataset.row, 10);
+  const c2 = parseInt(b.dataset.col, 10);
+
+  const dr = r2 - r1;
+  const dc = c2 - c1;
+
+  // consenti solo orizzontale/verticale/diagonale perfetta
+  const adr = Math.abs(dr);
+  const adc = Math.abs(dc);
+
+  const stepR = Math.sign(dr);
+  const stepC = Math.sign(dc);
+
+  const isHorizontal = (dr === 0 && dc !== 0);
+  const isVertical   = (dc === 0 && dr !== 0);
+  const isDiagonal   = (adr === adc && adr !== 0);
+
+  if(!(isHorizontal || isVertical || isDiagonal)){
+    return { ok:false };
+  }
+
+  // numero passi
+  const steps = Math.max(adr, adc);
+
+  let r = r1, c = c1;
+  let letters = "";
+  const cells = [];
+
+  for(let i=0;i<=steps;i++){
+    letters += gridData[r][c];
+    cells.push({r, c});
+    r += stepR;
+    c += stepC;
+  }
+
+  return { ok:true, word: letters, cells };
+}
+
+function markFound(word, cells){
+  foundWords.add(word);
+  const wEl = document.getElementById("word-" + word);
+  if(wEl) wEl.classList.add("found");
+
+  for(const p of cells){
+    const el = document.querySelector(`.cell[data-row='${p.r}'][data-col='${p.c}']`);
+    if(el) el.classList.add("found");
+  }
+}
+
+function clearSelected(){
+  document.querySelectorAll(".cell.selected").forEach(el => el.classList.remove("selected"));
+}
+
+// init
+buildGrid();
+buildWordList();
+</script>
+</body>
+</html>
