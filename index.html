@@ -1181,7 +1181,7 @@ function restoreCurrentGame(){
 ========================================================= */
 const cipherAnswerEl = document.getElementById("cipherAnswer");
 const cipherMsgEl = document.getElementById("cipherMsg");
-const CIPHER_EXPECTED = "FELICITÀ NON È AVERE TUTTO CIÒ CHE SI DESIDERA, MA DESIDERARE CIÒ CHE SI HA";
+const CIPHER_EXPECTED = "FELICITA NON E AVERE TUTTO CIO CHE SI DESIDERA MA DESIDERARE CIO CHE SI HA";
 
 /* ✅ textarea auto-grow */
 function autoGrow(el){
@@ -1195,9 +1195,14 @@ if(cipherAnswerEl && cipherAnswerEl.tagName === "TEXTAREA"){
 }
 
 function normalizeCipherInput(s){
+  // ✅ Normalizzazione robusta (iPhone-friendly):
+  // - ignora accenti (È -> E), apostrofi, virgole, punteggiatura
+  // - confronta solo le parole
   return String(s || "")
     .toUpperCase()
-    .replace(/[^A-ZÀÈÉÌÒÙ\s]/g, " ")
+    .normalize("NFD")                 // separa le diacritiche
+    .replace(/[\u0300-\u036f]/g, "") // rimuove diacritiche (accenti)
+    .replace(/[^A-Z\s]/g, " ")        // tutto il resto -> spazio (virgole, apostrofi, ecc.)
     .replace(/\s+/g, " ")
     .trim();
 }
