@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Enigmistica — Percorso</title>
+<title>Road to 30</title>
 
 <style>
   :root{ --gap: 3px; --cell: 34px; }
@@ -556,18 +556,18 @@
   <!-- ======= PREMI + ANAGRAMMA ======= -->
   <div class="card">
     <div class="topRow">
-      <div style="font-weight:900;">Premi (tasselli)</div>
-      <div class="chip" id="prizeChip">Premi ottenuti: 0 / 7</div>
+      <div style="font-weight:900;">Tessere Sbloccate</div>
+      <div class="chip" id="prizeChip">Tessere ottenute: 0 / 7</div>
     </div>
 
     <div class="sub" style="text-align:center;">
-      Completa i giochi per ottenere i tasselli. Le lettere restano coperte finché non li hai tutti.
+      Completa i giochi per ottenere le tessere.
     </div>
 
     <div class="prizeRow" id="prizeRow" aria-label="Premi"></div>
 
     <div class="btnRow">
-      <button class="secondary" id="resetAllBtn">Reset percorso</button>
+      <button class="secondary" id="resetAllBtn">Reset Gioco</button>
     </div>
 
     <div class="msg" id="prizeMsg"></div>
@@ -581,7 +581,7 @@
 
       <div class="slots" id="anaSlots"></div>
       <div class="sub" style="text-align:center;">
-        Ora che hai tutti i tasselli, completa l’anagramma.
+        Ora che hai tutte le tessere, completa l’anagramma.
       </div>
       <div class="pool" id="anaPool"></div>
 
@@ -598,9 +598,9 @@
 
   <!-- ======= GAME 1 — Cifrario (1 tile) ======= -->
   <div class="card" id="game1">
-    <div class="gameTitle">Gioco 1 — Cifrario (1 tassello)</div>
+    <div class="gameTitle">Cifrario (1 tessera)</div>
     <div class="sub">
-      Ogni lettera è stata spostata di <b>+3</b>. Per decodificare, sposta di <b>-3</b>.
+      Il numero perfetto è la chiave.
     </div>
 
     <div class="cipherBox" id="cipherText">IHOLFLWÀ QRQ È DYHUH WXWWR FLR FKH VL GHVLGHUD, PD GHVLGHUDUH FLR FKH VL KD</div>
@@ -608,7 +608,7 @@
     <input class="cipherInput" id="cipherAnswer" placeholder="Inserisci la frase decodificata" />
 
     <div class="btnRow">
-      <button class="secondary" id="cipherClearBtn">Pulisci</button>
+      <button class="secondary" id="cipherClearBtn">Reset</button>
       <button id="cipherCheckBtn">Controlla</button>
     </div>
 
@@ -617,7 +617,7 @@
 
   <!-- ======= GAME 2 — Logica (2 tile) ======= -->
   <div class="card hidden" id="game2">
-    <div class="gameTitle">Gioco 2 — Logica deduttiva (2 tasselli)</div>
+    <div class="gameTitle">Logica deduttiva (2 tessere)</div>
     <div class="sub">Usa gli indizi per abbinare correttamente oggetto e colore a ciascuna persona.</div>
 
     <div class="logicWrap">
@@ -662,7 +662,7 @@
 
   <!-- ======= GAME 3 — Cruciverba (4 tile) ======= -->
   <div class="card hidden" id="game3">
-    <div class="gameTitle">Gioco 3 — Cruciverba (4 tasselli)</div>
+    <div class="gameTitle">Cruciverba (4 tessere)</div>
     <div class="sub">Completa il cruciverba: le parole corrette diventano verdi.</div>
 
     <div class="chip" id="cwProgress">0 / 10 parole corrette</div>
@@ -672,7 +672,7 @@
         <div id="cwGrid" aria-label="Cruciverba"></div>
 
         <div class="btnRow">
-          <button class="secondary" id="cwClearBtn">Pulisci</button>
+          <button class="secondary" id="cwClearBtn">Reset</button>
           <button id="cwCheckBtn">Controlla</button>
         </div>
 
@@ -1941,5 +1941,6 @@ init();
 </script>
 </body>
 </html>
+
 
 
