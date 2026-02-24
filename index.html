@@ -816,15 +816,15 @@
 
   /* ===== FLOATING RESTART (sempre accessibile) ===== */
   .fabRestart{
-    display:block;
     position: fixed;
     right: 14px;
     bottom: 14px;
-    z-index: 9998;
+    z-index: 99999;
     border-radius: 999px;
     padding: 12px 14px;
     font-weight: 900;
-    display:none;
+    display: block !important; /* ✅ sempre visibile */
+    touch-action: manipulation;
   }
   
   
