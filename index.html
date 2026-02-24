@@ -325,6 +325,24 @@
   .clue{ margin: 7px 0; line-height:1.35; font-size:13px; }
   .clue b{ display:inline-block; min-width: 26px; }
 
+  /* ===== CROSSWORD: mobile-first adjustments ===== */
+  .gridWrap{ max-width: 100%; overflow-x: auto; }
+  /* keep grid from squishing weirdly; allow horizontal scroll if needed */
+  #cwGrid{ width: max-content; margin: 0 auto; }
+
+  @media (max-width: 820px){
+    /* On phones: stack grid then clues, with comfortable scrolling */
+    .layout{ display:flex; flex-direction:column; }
+    .gridWrap{ order: 1; padding: 10px; }
+    .panel{ order: 2; margin-top: 10px; }
+    .panel h3{ font-size: 15px; }
+    .clueCol{ padding: 10px; }
+    /* make long clue lists scroll instead of pushing forever */
+    .clueCol{ max-height: 46vh; overflow:auto; }
+    .clue{ font-size: 12.5px; }
+  }
+
+
   .btnRow{
     display:flex;
     gap:10px;
@@ -1384,11 +1402,14 @@ const CW_TOTAL = CW_WORDS.length;
 const cwFound = new Set();
 
 function cwSetResponsiveCellSize(){
-  const padding = 40;
-  const maxWidth = Math.min(window.innerWidth, 640) - padding;
+  // ✅ Mobile-first: considera padding reali delle card e lascia più respiro su iPhone
   const gap = 3;
+  const sidePadding = 28; // card padding + sicurezza
+  const maxWidth = Math.min(window.innerWidth, 560) - sidePadding;
+
   const cell = Math.floor((maxWidth - gap*(CW_N-1)) / CW_N);
-  const clamped = Math.max(22, Math.min(cell, 40));
+  const clamped = Math.max(18, Math.min(cell, 40));
+
   document.documentElement.style.setProperty("--cell", clamped + "px");
   document.documentElement.style.setProperty("--gap", gap + "px");
   cwGridEl.style.gridTemplateColumns = `repeat(${CW_N}, var(--cell))`;
