@@ -689,8 +689,7 @@
     max-width: 1200px;
     padding: 18px 12px 24px;
   }
-  body.finalOnly .stepNav,
-  body.finalOnly #game1,
+    body.finalOnly #game1,
   body.finalOnly #game2,
   body.finalOnly #game3,
   body.finalOnly .card:first-of-type{
@@ -831,6 +830,16 @@
     touch-action: manipulation;
   }
   .finalFab.hidden{ display:none !important; }
+
+
+  /* Finale: mostra la navigazione anche nel game4 */
+  body.finalOnly .stepNav{
+    position: sticky;
+    top: 10px;
+    z-index: 50;
+    margin-top: 10px;
+    margin-bottom: 12px;
+  }
 
 </style>
 </head>
