@@ -104,7 +104,7 @@
     border-color:#34a853;
   }
 
-  /* ===== PREMI ===== */
+  /* ===== PREMI (tasselli coperti finché non li hai tutti) ===== */
   .prizeRow{
     display:flex;
     justify-content:center;
@@ -159,6 +159,34 @@
     font-size:22px;
     color:#bdbdbd;
   }
+
+  /* ===== ANAGRAM ===== */
+  .slots, .pool{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:center;
+    margin-top:10px;
+  }
+  .slot, .tile{
+    width:44px;
+    height:44px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:900;
+    font-size:20px;
+    user-select:none;
+    -webkit-user-select:none;
+    touch-action:none;
+  }
+  .slot{ border:2px dashed #bdbdbd; background:#fafafa; color:#111; }
+  .slot.empty::after{ content:"•"; color:#9e9e9e; font-size:22px; line-height:1; }
+  .slot.filled{ border-style: solid; border-color:#cfcfcf; background:#fff; }
+  .slot.filled::after{ content:""; }
+  .tile{ border:2px solid #cfcfcf; background:#fff; cursor: grab; }
+  .tile:active{ cursor:grabbing; }
 
   /* ===== GAME 3: CROSSWORD ===== */
   .layout{
@@ -382,7 +410,7 @@
     .logicGrid .col3{ display:none; }
   }
   @media(max-width:420px){
-    .pTile{ width:40px; height:40px; font-size:18px; }
+    .slot, .tile, .pTile{ width:40px; height:40px; font-size:18px; }
   }
 
   /* =========================================================
@@ -525,7 +553,7 @@
 <body>
 <div class="wrap">
 
-  <!-- ======= PREMI (solo tracking, sparisce nel gran finale) ======= -->
+  <!-- ======= PREMI + ANAGRAMMA ======= -->
   <div class="card">
     <div class="topRow">
       <div style="font-weight:900;">Premi (tasselli)</div>
@@ -543,6 +571,26 @@
     </div>
 
     <div class="msg" id="prizeMsg"></div>
+
+    <!-- ANAGRAMMA: appare solo a premi completi -->
+    <div id="anagramArea" class="hidden" style="margin-top:14px;">
+      <div class="topRow">
+        <div style="font-weight:900;">Anagramma finale</div>
+        <div class="chip">Lettere disponibili: 7 / 7</div>
+      </div>
+
+      <div class="slots" id="anaSlots"></div>
+      <div class="sub" style="text-align:center;">
+        Ora che hai tutti i tasselli, completa l’anagramma.
+      </div>
+      <div class="pool" id="anaPool"></div>
+
+      <div class="btnRow">
+        <button class="secondary" id="anaResetBtn">Reset anagramma</button>
+        <button id="anaCheckBtn">Controlla</button>
+      </div>
+      <div class="msg" id="anaMsg"></div>
+    </div>
   </div>
 
   <!-- ======= NAV (numeri) ======= -->
@@ -653,7 +701,7 @@
   <!-- ======= GAME 4 — Finale: Word Search ======= -->
   <div class="card hidden" id="game4">
     <div class="gameTitle">Gioco finale — Word Search</div>
-    <div class="sub">Questo gioco si sblocca solo dopo aver completato i primi 3 giochi.</div>
+    <div class="sub">Questo gioco si sblocca solo dopo aver completato l’anagramma.</div>
 
     <h2 style="margin:10px 0 6px;">GRAN FINALE — Trova tutte le parole!</h2>
     <div class="wsHint">Trascina per selezionare (↔ ↕ ↘ ↗). Rilascia per confermare.</div>
@@ -680,7 +728,7 @@
     <div class="finalKicker">GRAN FINALE</div>
     <div class="finalTitle">Si parte.</div>
     <div class="finalSub">
-      Hai completato il percorso. Ora resta solo l’ultima sfida: trova tutte le parole.
+      Anagramma completato. Ultima sfida: trova tutte le parole.
     </div>
     <div class="finalPulse" aria-hidden="true"></div>
   </div>
@@ -693,12 +741,14 @@
 const FINAL_WORD = "CARAIBI";
 const TOTAL_TILES = FINAL_WORD.length; // 7
 
-const STORAGE_PRIZE_COUNT = "prize_count";
-const STORAGE_GAME_DONE = "games_done";
-const STORAGE_CURRENT_GAME = "current_game";
+const STORAGE_PRIZE_COUNT     = "prize_count";
+const STORAGE_ANAGRAM         = "anagram_state";
+const STORAGE_GAME_DONE       = "games_done";
+const STORAGE_CURRENT_GAME    = "current_game";
+const STORAGE_ANAGRAM_DONE    = "anagram_done";
 
-/* flag: finale sbloccato (per entrare direttamente in gran finale al reload) */
-const STORAGE_FINAL_UNLOCKED = "final_unlocked";
+/* per entrare diretto nel finale dopo reload */
+const STORAGE_FINAL_UNLOCKED  = "final_unlocked";
 
 function safeParseJSON(raw, fallback){
   try{ const x = JSON.parse(raw); return (x===null||x===undefined)?fallback:x; }
@@ -721,6 +771,25 @@ function addPrizes(amount){
   setPrizeCount(next);
   return next - cur;
 }
+function allPrizesCollected(){
+  return getPrizeCount() >= TOTAL_TILES;
+}
+
+/* ===== anagram done ===== */
+function isAnagramDone(){
+  return localStorage.getItem(STORAGE_ANAGRAM_DONE) === "1";
+}
+function setAnagramDone(){
+  localStorage.setItem(STORAGE_ANAGRAM_DONE, "1");
+}
+
+/* ===== finale unlocked ===== */
+function isFinalUnlocked(){
+  return localStorage.getItem(STORAGE_FINAL_UNLOCKED) === "1";
+}
+function setFinalUnlocked(){
+  localStorage.setItem(STORAGE_FINAL_UNLOCKED, "1");
+}
 
 /* ===== games done ===== */
 function getGamesDone(){
@@ -737,14 +806,6 @@ function setGameDone(gameId){
   renderSteps();
 }
 
-/* ===== finale unlocked ===== */
-function isFinalUnlocked(){
-  return localStorage.getItem(STORAGE_FINAL_UNLOCKED) === "1";
-}
-function setFinalUnlocked(){
-  localStorage.setItem(STORAGE_FINAL_UNLOCKED, "1");
-}
-
 /* =========================================================
    PREMI UI (coperti finché non arrivi a 7)
 ========================================================= */
@@ -756,7 +817,8 @@ function renderPrizes(){
   const count = getPrizeCount();
   prizeChipEl.textContent = `Premi ottenuti: ${count} / ${TOTAL_TILES}`;
 
-  // restano coperti sempre (non c’è più anagramma)
+  const reveal = allPrizesCollected();
+
   prizeRowEl.innerHTML = "";
   for(let i=0;i<TOTAL_TILES;i++){
     const t = document.createElement("div");
@@ -768,19 +830,171 @@ function renderPrizes(){
       t.classList.add("empty");
       t.textContent = "";
     }else{
-      t.classList.add("covered");
-      t.textContent = "";
+      if(!reveal){
+        t.classList.add("covered");
+        t.textContent = "";
+      }else{
+        t.textContent = FINAL_WORD[i];
+      }
     }
 
     prizeRowEl.appendChild(t);
   }
 
-  prizeMsgEl.textContent = "";
-  prizeMsgEl.className = "msg";
+  document.getElementById("anagramArea").classList.toggle("hidden", !reveal);
+
+  if(reveal && !isAnagramDone()){
+    prizeMsgEl.textContent = "✅ Hai tutti i tasselli! Ora completa l’anagramma per sbloccare il gran finale.";
+    prizeMsgEl.className = "msg ok";
+  }else{
+    prizeMsgEl.textContent = "";
+    prizeMsgEl.className = "msg";
+  }
 }
 
 /* =========================================================
-   NAVIGATION (ordine: 1 cifrario, 2 logica, 3 cruciverba, 4 finale)
+   ANAGRAM
+========================================================= */
+const anaSlotsEl = document.getElementById("anaSlots");
+const anaPoolEl  = document.getElementById("anaPool");
+const anaMsgEl   = document.getElementById("anaMsg");
+
+let anaSlots = Array(TOTAL_TILES).fill(null);
+
+function loadAnagram(){
+  const raw = localStorage.getItem(STORAGE_ANAGRAM);
+  const obj = safeParseJSON(raw, null);
+  if(obj && Array.isArray(obj.slots) && obj.slots.length === TOTAL_TILES){
+    anaSlots = obj.slots.map(x => x ? String(x).toUpperCase() : null);
+  }
+}
+function saveAnagram(){
+  localStorage.setItem(STORAGE_ANAGRAM, JSON.stringify({ slots: anaSlots }));
+}
+function computeAnaPool(){
+  const letters = FINAL_WORD.split("");
+  const placed = anaSlots.filter(Boolean);
+  const pool = letters.slice();
+  for(const p of placed){
+    const idx = pool.indexOf(p);
+    if(idx >= 0) pool.splice(idx, 1);
+  }
+  return pool;
+}
+function renderAnagram(){
+  if(!allPrizesCollected()) return;
+
+  anaMsgEl.textContent = "";
+  anaMsgEl.className = "msg";
+
+  anaSlotsEl.innerHTML = "";
+  for(let i=0;i<TOTAL_TILES;i++){
+    const slot = document.createElement("div");
+    slot.className = "slot " + (anaSlots[i] ? "filled" : "empty");
+    slot.dataset.idx = i;
+    if(anaSlots[i]) slot.textContent = anaSlots[i];
+
+    slot.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      if(!anaSlots[i]) return;
+      anaSlots[i] = null;
+      saveAnagram();
+      renderAnagram();
+    });
+
+    anaSlotsEl.appendChild(slot);
+  }
+
+  const pool = computeAnaPool();
+  anaPoolEl.innerHTML = "";
+  pool.forEach((ch) => {
+    const tile = document.createElement("div");
+    tile.className = "tile";
+    tile.textContent = ch;
+    tile.addEventListener("pointerdown", (e) => startAnaDrag(e, ch));
+    anaPoolEl.appendChild(tile);
+  });
+}
+
+let anaDragging = null;
+function startAnaDrag(e, letter){
+  e.preventDefault();
+  anaDragging = { letter };
+  window.addEventListener("pointerup", endAnaDrag, { once:true });
+}
+function endAnaDrag(e){
+  if(!anaDragging) return;
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const slot = el?.classList?.contains("slot") ? el : el?.closest?.(".slot");
+  if(slot){
+    const idx = parseInt(slot.dataset.idx, 10);
+    if(!anaSlots[idx]){
+      anaSlots[idx] = anaDragging.letter;
+      saveAnagram();
+    }
+  }
+  anaDragging = null;
+  renderAnagram();
+}
+
+document.getElementById("anaResetBtn").addEventListener("click", () => {
+  anaSlots = Array(TOTAL_TILES).fill(null);
+  saveAnagram();
+  renderAnagram();
+});
+
+/* =========================================================
+   GRAN FINALE: overlay + ingresso game4
+========================================================= */
+const finalOverlayEl = document.getElementById("finalOverlay");
+
+function runFinaleTransitionAndEnter(){
+  setFinalUnlocked();
+
+  finalOverlayEl.classList.remove("hidden");
+  finalOverlayEl.setAttribute("aria-hidden","false");
+
+  setTimeout(() => {
+    finalOverlayEl.classList.add("hidden");
+    finalOverlayEl.setAttribute("aria-hidden","true");
+
+    currentGameIndex = games.indexOf("game4");
+    showGame();
+  }, 1150);
+}
+
+/* check anagram */
+document.getElementById("anaCheckBtn").addEventListener("click", () => {
+  if(!allPrizesCollected()){
+    anaMsgEl.textContent = "Non puoi ancora: devi prima ottenere tutti i tasselli.";
+    anaMsgEl.className = "msg bad";
+    return;
+  }
+  if(anaSlots.some(x => !x)){
+    anaMsgEl.textContent = "Completa tutti gli spazi prima di controllare.";
+    anaMsgEl.className = "msg bad";
+    return;
+  }
+  const guess = anaSlots.join("");
+  if(guess === FINAL_WORD){
+    anaMsgEl.textContent = "✅ Anagramma completato! Si sblocca il gran finale.";
+    anaMsgEl.className = "msg ok";
+
+    if(!isAnagramDone()) setAnagramDone();
+
+    // aggiorna nav (ora il 4 può comparire)
+    renderSteps();
+
+    // 🔥 entra nel gran finale con overlay
+    runFinaleTransitionAndEnter();
+  }else{
+    anaMsgEl.textContent = "❌ Non è corretto. Riprova.";
+    anaMsgEl.className = "msg bad";
+  }
+});
+
+/* =========================================================
+   NAVIGATION (1,2,3,4) — 4 SOLO DOPO ANAGRAMMA
 ========================================================= */
 const games = ["game1","game2","game3","game4"];
 let currentGameIndex = 0;
@@ -790,20 +1004,20 @@ function canAccess(index){
   if(index === 0) return true;
   if(index === 1) return !!done.game1;
   if(index === 2) return !!done.game2;
-  if(index === 3) return !!done.game1 && !!done.game2 && !!done.game3; // ✅ solo dopo 1-2-3
+  if(index === 3) return isAnagramDone(); // ✅ gate definitivo
   return false;
 }
 
+/* ✅ step 4 NON renderizzato finché non accessibile */
 function renderSteps(){
   const nav = document.getElementById("stepNav");
   nav.innerHTML = "";
   const done = getGamesDone();
 
-  // ✅ Mostra lo step 4 SOLO quando è davvero accessibile (cioè dopo 1-2-3)
   const hideStep4 = !canAccess(3);
 
   games.forEach((g, i) => {
-    if(i === 3 && hideStep4) return; // <-- NON renderizzare il 4
+    if(i === 3 && hideStep4) return;
 
     const step = document.createElement("div");
     step.className = "step";
@@ -811,6 +1025,7 @@ function renderSteps(){
 
     if(i === currentGameIndex) step.classList.add("active");
     if(done[g]) step.classList.add("done");
+    if(g === "game4" && isAnagramDone()) step.classList.add("done");
 
     if(!canAccess(i)){
       step.classList.add("locked");
@@ -820,7 +1035,6 @@ function renderSteps(){
         showGame();
       });
     }
-
     nav.appendChild(step);
   });
 }
@@ -845,8 +1059,8 @@ function showGame(){
 }
 
 function restoreCurrentGame(){
-  // Se finale già sbloccato, vai diretto al 4 in gran finale
-  if(isFinalUnlocked()){
+  // se finale sbloccato (dopo anagramma), vai diretto al 4
+  if(isFinalUnlocked() && canAccess(3)){
     currentGameIndex = games.indexOf("game4");
     showGame();
     return;
@@ -864,51 +1078,29 @@ function restoreCurrentGame(){
 }
 
 /* =========================================================
-   GRAN FINALE: transizione + ingresso in game4
-========================================================= */
-const finalOverlayEl = document.getElementById("finalOverlay");
-
-function runFinaleTransitionAndEnter(){
-  setFinalUnlocked();
-
-  finalOverlayEl.classList.remove("hidden");
-  finalOverlayEl.setAttribute("aria-hidden","false");
-
-  // after a short cinematic beat, enter game4
-  setTimeout(() => {
-    finalOverlayEl.classList.add("hidden");
-    finalOverlayEl.setAttribute("aria-hidden","true");
-
-    currentGameIndex = games.indexOf("game4");
-    showGame();
-  }, 1150);
-}
-
-/* =========================================================
    RESET COMPLETO
 ========================================================= */
 document.getElementById("resetAllBtn").addEventListener("click", () => {
   localStorage.removeItem(STORAGE_PRIZE_COUNT);
   localStorage.removeItem(STORAGE_GAME_DONE);
   localStorage.removeItem(STORAGE_CURRENT_GAME);
+  localStorage.removeItem(STORAGE_ANAGRAM);
+  localStorage.removeItem(STORAGE_ANAGRAM_DONE);
   localStorage.removeItem(STORAGE_FINAL_UNLOCKED);
 
+  anaSlots = Array(TOTAL_TILES).fill(null);
   currentGameIndex = 0;
 
-  // reset UI cifrario
   cipherAnswerEl.value = "";
   cipherMsgEl.textContent = "";
   cipherMsgEl.className = "msg";
 
-  // reset UI logica
   resetLogic();
 
-  // reset UI cruciverba
   document.querySelectorAll("#cwGrid input").forEach(i => i.value = "");
   cwBanner.textContent = "";
   cwBanner.className = "msg";
 
-  // reset word search (solo in memoria)
   wsResetInMemory();
 
   document.body.classList.remove("finalOnly");
@@ -953,6 +1145,10 @@ document.getElementById("cipherCheckBtn").addEventListener("click", () => {
     cipherMsgEl.className = "msg ok";
 
     renderPrizes();
+    if(allPrizesCollected()){
+      loadAnagram();
+      renderAnagram();
+    }
   }else{
     cipherMsgEl.textContent = "❌ Non è corretto.";
     cipherMsgEl.className = "msg bad";
@@ -1066,6 +1262,10 @@ function checkLogicSolution(){
     logicMsg.className = "msg ok";
 
     renderPrizes();
+    if(allPrizesCollected()){
+      loadAnagram();
+      renderAnagram();
+    }
   }else{
     logicMsg.textContent = "❌ Non è corretto.";
     logicMsg.className = "msg bad";
@@ -1272,14 +1472,14 @@ function cwValidateAll(){
     if(!done.game3){
       addPrizes(4);
       setGameDone("game3");
-
       cwBanner.textContent = `✅ Completato! Hai ottenuto 4 tasselli (${getPrizeCount()}/${TOTAL_TILES}).`;
       cwBanner.className = "msg ok";
 
       renderPrizes();
-
-      // 🔥 GRAN FINALE: transizione e ingresso al gioco 4
-      runFinaleTransitionAndEnter();
+      if(allPrizesCollected()){
+        loadAnagram();
+        renderAnagram();
+      }
       return;
     }else{
       cwBanner.textContent = `✅ Già completato. Premi: ${getPrizeCount()}/${TOTAL_TILES}.`;
@@ -1713,6 +1913,10 @@ function wsFinishSelection(){
 ========================================================= */
 function init(){
   renderPrizes();
+  loadAnagram();
+  if(allPrizesCollected()){
+    renderAnagram();
+  }
 
   initLogicUI();
   checkUniquenessWarn();
