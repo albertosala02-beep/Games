@@ -652,6 +652,13 @@
     width:100%;
     height:100%;
     pointer-events:none;
+    z-index: 0;          /* ✅ dietro ai contenuti */
+    opacity: 0.30;       /* ✅ non copre la UI */
+  }
+  /* porta in primo piano tutto il contenuto del win screen */
+  #wsWin > *:not(canvas){
+    position: relative;
+    z-index: 1;
   }
 
   /* quando hai vinto: nascondi il resto del gioco */
@@ -2542,6 +2549,13 @@ function wsStartFireworks(){
   let frames = 0;
   fwRunning = true;
 
+  // ✅ stop automatico dopo 10s
+  setTimeout(()=>{
+    fwRunning = false;
+    try{ ctx.clearRect(0,0,canvas.width,canvas.height); }catch{}
+  }, 10000);
+
+
   function tick(){
     if(!fwRunning) return;
     frames++;
@@ -2598,6 +2612,8 @@ function wsShowWinScreen(){
   winResetAnagram();
   const c = document.getElementById("winCheckBtn");
   if(c) c.onclick = winCheckAnagram;
+  const rs = document.getElementById("winRestartBtn");
+  if(rs) rs.onclick = () => document.getElementById("resetAllBtn")?.click();
 wsStartFireworks();
 
   // scroll to top of game4 quickly (mobile friendly)
