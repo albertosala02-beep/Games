@@ -817,18 +817,37 @@ function renderPrizes(){
   const count = getPrizeCount();
   prizeChipEl.textContent = `Premi ottenuti: ${count} / ${TOTAL_TILES}`;
 
-  const reveal = false; // ✅ non mostrare mai le lettere nei premi
-...
-if(!obtained){
-  t.classList.add("empty");
-  t.textContent = "";
-}else{
-  t.classList.add("covered");
-  t.textContent = "";
-}
+  // ✅ Non mostrare mai le lettere nei premi (evita duplicazione con anagramma)
+  prizeRowEl.innerHTML = "";
+  for(let i=0;i<TOTAL_TILES;i++){
+    const t = document.createElement("div");
+    t.className = "pTile";
+
+    const obtained = i < count;
+
+    if(!obtained){
+      t.classList.add("empty");
+      t.textContent = "";
+    }else{
+      t.classList.add("covered");
+      t.textContent = "";
+    }
 
     prizeRowEl.appendChild(t);
   }
+
+  // ✅ Anagramma appare SOLO quando hai 7/7
+  document.getElementById("anagramArea").classList.toggle("hidden", !allPrizesCollected());
+
+  // ✅ Messaggio verde solo quando serve (puoi anche toglierlo del tutto)
+  if(allPrizesCollected() && !isAnagramDone()){
+    prizeMsgEl.textContent = "✅ Hai tutti i tasselli! Ora completa l’anagramma per sbloccare il gran finale.";
+    prizeMsgEl.className = "msg ok";
+  }else{
+    prizeMsgEl.textContent = "";
+    prizeMsgEl.className = "msg";
+  }
+}
 
   document.getElementById("anagramArea").classList.toggle("hidden", !reveal);
 
@@ -1922,4 +1941,5 @@ init();
 </script>
 </body>
 </html>
+
 
