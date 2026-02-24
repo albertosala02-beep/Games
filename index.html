@@ -813,6 +813,25 @@
     50%{ transform: translateX(60%); opacity: 1; }
     100%{ transform: translateX(160%); opacity: 0.35; }
   }
+
+  .finalFab{
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 9999;
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+    border: 2px solid rgba(40,25,10,0.35);
+    background: rgba(255,255,255,0.78);
+    box-shadow: 0 14px 36px rgba(0,0,0,0.20);
+    font-weight: 900;
+    font-size: 22px;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .finalFab.hidden{ display:none !important; }
+
 </style>
 </head>
 
@@ -1085,6 +1104,29 @@ const PUZZLE = {
     {"word":"NOI","cells":[[11,7],[11,8],[11,9]],"dir":[0,1],"start":[11,7]},
     {"word":"NORD","cells":[[9,6],[9,5],[9,4],[9,3]],"dir":[0,-1],"start":[9,6]}
   ]
+
+/* =========================================================
+   DEBUG (solo per sviluppo)
+   Attivalo aggiungendo ?debug=1 all'URL
+========================================================= */
+const DEBUG = new URLSearchParams(location.search).get("debug") === "1";
+
+function debugUnlockAll(){
+  localStorage.setItem("prize_count", "7");
+  localStorage.setItem("games_done", JSON.stringify({ game1:true, game2:true, game3:true }));
+  localStorage.setItem("anagram_done", "1");
+  localStorage.setItem("final_unlocked", "1");
+  localStorage.setItem("current_game", "game4");
+}
+
+function debugForceWinFinale(){
+  debugUnlockAll();
+  try{ currentGameIndex = games.indexOf("game4"); }catch{}
+  try{
+    showGame();
+    setTimeout(()=>{ try{ wsShowWinScreen(); }catch(e){} }, 150);
+  }catch(e){}
+}
 };
 
 /* =========================================================
@@ -1360,6 +1402,9 @@ function showGame(){
   renderSteps();
 
   const isFinal = (games[currentGameIndex] === "game4");
+  const fab = document.getElementById("finalRestartFab");
+  if(fab){ fab.classList.toggle("hidden", !isFinal); }
+
   document.body.classList.toggle("finalOnly", isFinal);
   if(!isFinal){ document.body.classList.remove("finalWin"); }
   if(isFinal && !document.getElementById("game4").classList.contains("winDone")){
@@ -2613,7 +2658,7 @@ function wsShowWinScreen(){
   const c = document.getElementById("winCheckBtn");
   if(c) c.onclick = winCheckAnagram;
   const rs = document.getElementById("winRestartBtn");
-  if(rs) rs.onclick = () => hardResetGame();
+  if(rs) rs.onclick = () => document.getElementById("resetAllBtn")?.click();
 wsStartFireworks();
 
   // scroll to top of game4 quickly (mobile friendly)
@@ -2624,11 +2669,14 @@ wsStartFireworks();
 /* =========================================================
    INIT
 ========================================================= */
+
 function hardResetGame(){
-  localStorage.clear();
+  try{ localStorage.clear(); }catch{}
   location.reload();
 }
 function init(){
+  if(DEBUG){ debugUnlockAll(); }
+
   renderPrizes();
   loadAnagram();
   if(allPrizesCollected()){
@@ -2645,8 +2693,22 @@ function init(){
 
   renderSteps();
   restoreCurrentGame();
+
+  const fab = document.getElementById("finalRestartFab");
+  if(fab) fab.onclick = hardResetGame;
+
+  if(DEBUG){
+    window.addEventListener("keydown", (e)=>{
+      if(e.shiftKey && (e.key === "D" || e.key === "d")) debugForceWinFinale();
+    });
+  }
+
 }
 init();
 </script>
+
+<!-- FLOATING RESTART (visibile nel finale, anche senza vittoria) -->
+<button id="finalRestartFab" class="finalFab hidden" aria-label="Rinizia gioco">↻</button>
+
 </body>
 </html>
