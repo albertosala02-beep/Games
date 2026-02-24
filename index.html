@@ -707,7 +707,7 @@
     <div class="wsHint">Trascina per selezionare (↔ ↕ ↘ ↗). Rilascia per confermare.</div>
 
     <div class="wsBar">
-      <div class="chip" id="wsProgress">0 / 37</div>
+      <div class="chip" id="wsProgress">0 / 0</div>
     </div>
 
     <div id="wsGridWrap">
@@ -736,6 +736,57 @@
 
 <script>
 /* =========================================================
+   PUZZLE JSON (INCOLLATO)
+   (questo è il contenuto del tuo puzzle.json)
+========================================================= */
+const PUZZLE = {
+  "n": 12,
+  "message": "ANTIGUA",
+  "message_cells": [[5,11],[9,0],[0,7],[7,5],[1,5],[4,8],[6,8]],
+  "grid_view": [
+    ["I","E","N","A","A","S","L","T","V","A","I","P"],
+    ["N","N","A","Z","D","G","E","I","O","I","S","O"],
+    ["T","O","T","N","D","P","V","G","O","L","R","R"],
+    ["E","I","U","E","I","E","A","Z","N","G","E","T"],
+    ["N","Z","R","R","R","L","R","P","U","A","G","A"],
+    ["D","I","A","E","I","E","E","A","A","T","R","A"],
+    ["E","S","L","F","T","E","S","S","A","T","O","E"],
+    ["R","O","M","F","T","I","R","S","B","A","C","P"],
+    ["E","P","E","I","U","O","E","A","A","B","C","P"],
+    ["N","S","N","D","R","O","N","T","G","N","A","U"],
+    ["S","I","T","U","A","Z","I","O","N","E","T","R"],
+    ["A","D","E","S","S","O","F","N","O","I","L","E"]
+  ],
+  "placements": [
+    {"word":"INTERESSANTE","cells":[[0,0],[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9],[10,10],[11,11]],"dir":[1,1],"start":[0,0]},
+    {"word":"DISPOSIZIONE","cells":[[11,1],[10,1],[9,1],[8,1],[7,1],[6,1],[5,1],[4,1],[3,1],[2,1],[1,1],[0,1]],"dir":[-1,0],"start":[11,1]},
+    {"word":"NATURALMENTE","cells":[[0,2],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],[7,2],[8,2],[9,2],[10,2],[11,2]],"dir":[1,0],"start":[0,2]},
+    {"word":"SITUAZIONE","cells":[[10,0],[10,1],[10,2],[10,3],[10,4],[10,5],[10,6],[10,7],[10,8],[10,9]],"dir":[0,1],"start":[10,0]},
+    {"word":"DIFFERENZA","cells":[[9,3],[8,3],[7,3],[6,3],[5,3],[4,3],[3,3],[2,3],[1,3],[0,3]],"dir":[-1,0],"start":[9,3]},
+    {"word":"ADDIRITTURA","cells":[[0,4],[1,4],[2,4],[3,4],[4,4],[5,4],[6,4],[7,4],[8,4],[9,4],[10,4]],"dir":[1,0],"start":[0,4]},
+    {"word":"SEGNARE","cells":[[0,5],[1,6],[2,7],[3,8],[4,9],[5,10],[6,11]],"dir":[1,1],"start":[0,5]},
+    {"word":"LEVARE","cells":[[0,6],[1,6],[2,6],[3,6],[4,6],[5,6]],"dir":[1,0],"start":[0,6]},
+    {"word":"VIVERE","cells":[[0,8],[1,7],[2,6],[3,5],[4,4],[5,3]],"dir":[1,-1],"start":[0,8]},
+    {"word":"ADESSO","cells":[[11,0],[11,1],[11,2],[11,3],[11,4],[11,5]],"dir":[0,1],"start":[11,0]},
+    {"word":"BATTAGLIA","cells":[[8,9],[7,9],[6,9],[5,9],[4,9],[3,9],[2,9],[1,9],[0,9]],"dir":[-1,0],"start":[8,9]},
+    {"word":"ACCORGERSI","cells":[[9,10],[8,10],[7,10],[6,10],[5,10],[4,10],[3,10],[2,10],[1,10],[0,10]],"dir":[-1,0],"start":[9,10]},
+    {"word":"LAGO","cells":[[4,5],[3,6],[2,7],[1,8]],"dir":[-1,1],"start":[4,5]},
+    {"word":"TERZO","cells":[[6,4],[5,5],[4,6],[3,7],[2,8]],"dir":[-1,1],"start":[6,4]},
+    {"word":"PAPA","cells":[[2,5],[3,6],[4,7],[5,8]],"dir":[1,1],"start":[2,5]},
+    {"word":"PORTA","cells":[[0,11],[1,11],[2,11],[3,11],[4,11]],"dir":[1,0],"start":[0,11]},
+    {"word":"INTENDERE","cells":[[0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[6,0],[7,0],[8,0]],"dir":[1,0],"start":[0,0]},
+    {"word":"PASSATO","cells":[[4,7],[5,7],[6,7],[7,7],[8,7],[9,7],[10,7]],"dir":[1,0],"start":[4,7]},
+    {"word":"BAGNO","cells":[[7,8],[8,8],[9,8],[10,8],[11,8]],"dir":[1,0],"start":[7,8]},
+    {"word":"LEGARE","cells":[[11,10],[10,9],[9,8],[8,7],[7,6],[6,5]],"dir":[-1,-1],"start":[11,10]},
+    {"word":"EPPURE","cells":[[6,11],[7,11],[8,11],[9,11],[10,11],[11,11]],"dir":[1,0],"start":[6,11]},
+    {"word":"TONO","cells":[[7,4],[8,5],[9,6],[10,7]],"dir":[1,1],"start":[7,4]},
+    {"word":"FINE","cells":[[11,6],[10,6],[9,6],[8,6]],"dir":[-1,0],"start":[11,6]},
+    {"word":"NOI","cells":[[11,7],[11,8],[11,9]],"dir":[0,1],"start":[11,7]},
+    {"word":"NORD","cells":[[9,6],[9,5],[9,4],[9,3]],"dir":[0,-1],"start":[9,6]}
+  ]
+};
+
+/* =========================================================
    GLOBALS + STORAGE
 ========================================================= */
 const FINAL_WORD = "CARAIBI";
@@ -746,8 +797,6 @@ const STORAGE_ANAGRAM         = "anagram_state";
 const STORAGE_GAME_DONE       = "games_done";
 const STORAGE_CURRENT_GAME    = "current_game";
 const STORAGE_ANAGRAM_DONE    = "anagram_done";
-
-/* per entrare diretto nel finale dopo reload */
 const STORAGE_FINAL_UNLOCKED  = "final_unlocked";
 
 function safeParseJSON(raw, fallback){
@@ -807,7 +856,7 @@ function setGameDone(gameId){
 }
 
 /* =========================================================
-   PREMI UI (coperti finché non arrivi a 7)
+   PREMI UI
 ========================================================= */
 const prizeChipEl = document.getElementById("prizeChip");
 const prizeRowEl  = document.getElementById("prizeRow");
@@ -817,14 +866,13 @@ function renderPrizes(){
   const count = getPrizeCount();
   prizeChipEl.textContent = `Premi ottenuti: ${count} / ${TOTAL_TILES}`;
 
-  // ✅ Non mostrare mai le lettere nei premi (evita duplicazione con anagramma)
+  // Non mostrare mai le lettere nei premi
   prizeRowEl.innerHTML = "";
   for(let i=0;i<TOTAL_TILES;i++){
     const t = document.createElement("div");
     t.className = "pTile";
 
     const obtained = i < count;
-
     if(!obtained){
       t.classList.add("empty");
       t.textContent = "";
@@ -832,26 +880,13 @@ function renderPrizes(){
       t.classList.add("covered");
       t.textContent = "";
     }
-
     prizeRowEl.appendChild(t);
   }
 
-  // ✅ Anagramma appare SOLO quando hai 7/7
+  // Anagramma appare SOLO quando hai 7/7
   document.getElementById("anagramArea").classList.toggle("hidden", !allPrizesCollected());
 
-  // ✅ Messaggio verde solo quando serve (puoi anche toglierlo del tutto)
   if(allPrizesCollected() && !isAnagramDone()){
-    prizeMsgEl.textContent = "✅ Hai tutti i tasselli! Ora completa l’anagramma per sbloccare il gran finale.";
-    prizeMsgEl.className = "msg ok";
-  }else{
-    prizeMsgEl.textContent = "";
-    prizeMsgEl.className = "msg";
-  }
-}
-
-  document.getElementById("anagramArea").classList.toggle("hidden", !reveal);
-
-  if(reveal && !isAnagramDone()){
     prizeMsgEl.textContent = "✅ Hai tutti i tasselli! Ora completa l’anagramma per sbloccare il gran finale.";
     prizeMsgEl.className = "msg ok";
   }else{
@@ -989,11 +1024,7 @@ document.getElementById("anaCheckBtn").addEventListener("click", () => {
     anaMsgEl.className = "msg ok";
 
     if(!isAnagramDone()) setAnagramDone();
-
-    // aggiorna nav (ora il 4 può comparire)
     renderSteps();
-
-    // 🔥 entra nel gran finale con overlay
     runFinaleTransitionAndEnter();
   }else{
     anaMsgEl.textContent = "❌ Non è corretto. Riprova.";
@@ -1012,11 +1043,10 @@ function canAccess(index){
   if(index === 0) return true;
   if(index === 1) return !!done.game1;
   if(index === 2) return !!done.game2;
-  if(index === 3) return isAnagramDone(); // ✅ gate definitivo
+  if(index === 3) return isAnagramDone();
   return false;
 }
 
-/* ✅ step 4 NON renderizzato finché non accessibile */
 function renderSteps(){
   const nav = document.getElementById("stepNav");
   nav.innerHTML = "";
@@ -1067,7 +1097,6 @@ function showGame(){
 }
 
 function restoreCurrentGame(){
-  // se finale sbloccato (dopo anagramma), vai diretto al 4
   if(isFinalUnlocked() && canAccess(3)){
     currentGameIndex = games.indexOf("game4");
     showGame();
@@ -1519,35 +1548,33 @@ document.getElementById("cwCheckBtn").addEventListener("click", () => {
 });
 
 /* =========================================================
-   GAME 4: WORD SEARCH (inizializza solo quando visibile)
+   GAME 4: WORD SEARCH (DINAMICO da PUZZLE + validazione per celle)
 ========================================================= */
 let wsInited = false;
 
-const wsGridData = [
-  ["E","A","A","S","U","A","C","A","P","O","O","A"],
-  ["D","R","I","D","E","R","E","C","T","E","D","R"],
-  ["N","D","E","C","L","E","I","T","A","N","N","M"],
-  ["A","O","A","G","E","S","E","A","P","F","O","A"],
-  ["R","P","S","T","N","R","P","U","R","O","F","R"],
-  ["G","O","B","U","I","O","N","A","M","U","B","E"],
-  ["S","N","A","D","N","A","M","O","D","E","A","I"],
-  ["O","U","O","N","N","A","T","I","R","E","V","P"],
-  ["A","P","D","I","P","G","B","E","L","L","O","S"],
-  ["I","R","R","R","I","V","E","L","A","R","E","E"],
-  ["Z","D","I","O","U","O","M","O","U","N","O","D"],
-  ["A","E","N","A","C","C","E","T","T","A","R","E"]
-];
+// Grid dinamica
+const wsGridData = PUZZLE.grid_view.map(row => row.map(ch => String(ch).toUpperCase()));
+const wsGRID_SIZE = PUZZLE.n;
 
-const wsWords = [
-  "VERITA","LEI","PACE","CORPO","PAURA","DIRETTO","GRANDE","USO",
-  "ACCETTARE","DOMANDA","PIU","DIO","CAUSA","BELLO","REGNO",
-  "CAFFE","RIVELARE","ARMARE","UOMO","NOI","FONDO","SEDE",
-  "UMANO","SUD","CAPO","PURO","ARIA","RIDERE","PENA","DOPO",
-  "PAESE","BUIO","BERE","ANNO","ZIA","DON","CANE"
-];
+// Occorrenze dinamiche (una per placement)
+const wsOccurrences = (() => {
+  const counts = new Map(); // word -> count
+  return PUZZLE.placements.map((p, idx) => {
+    const w = String(p.word).toUpperCase();
+    const n = (counts.get(w) || 0) + 1;
+    counts.set(w, n);
+    const label = (n > 1) ? `${w} (${n})` : w; // per mostrare duplicati
+    return { id: `${w}__${idx}`, word: w, label, cells: p.cells };
+  });
+})();
 
-const wsWordSet = new Set(wsWords);
-const wsGRID_SIZE = wsGridData.length;
+// Mappa coordinate -> occId (e reverse)
+const wsOccMap = new Map();
+for (const occ of wsOccurrences) {
+  const cells = occ.cells.map(([r,c]) => `${r},${c}`);
+  wsOccMap.set(cells.join("|"), occ.id);
+  wsOccMap.set(cells.slice().reverse().join("|"), occ.id);
+}
 
 const wsGridWrapEl = document.getElementById("wsGridWrap");
 const wsGridEl = document.getElementById("wsGrid");
@@ -1563,12 +1590,13 @@ let wsCurrentPos = null;
 let wsLockedDir = null;
 let wsPreviewShape = null;
 
-const wsFoundWords = new Set();
+const wsFoundOccIds = new Set();
 const wsFoundCapsules = [];
 
 function wsResetInMemory(){
-  wsFoundWords.clear();
+  wsFoundOccIds.clear();
   wsFoundCapsules.length = 0;
+
   wsIsDragging = false;
   wsActivePointerId = null;
   wsStartPos = null;
@@ -1580,7 +1608,7 @@ function wsResetInMemory(){
     wsMsgEl.textContent = "";
     wsMsgEl.className = "msg";
   }
-  if(wsProgressEl) wsProgressEl.textContent = `0 / ${wsWords.length}`;
+  if(wsProgressEl) wsProgressEl.textContent = `0 / ${wsOccurrences.length}`;
   if(wsWordListEl){
     const items = wsWordListEl.querySelectorAll(".wsWord");
     items.forEach(x => x.classList.remove("found"));
@@ -1699,17 +1727,17 @@ function wsBuildGrid(){
 
 function wsBuildWordList(){
   wsWordListEl.innerHTML = "";
-  for(const w of wsWords){
+  for(const occ of wsOccurrences){
     const span = document.createElement("span");
     span.className = "wsWord";
-    span.id = "wsWord-" + w;
-    span.textContent = w;
+    span.id = "wsOcc-" + occ.id;
+    span.textContent = occ.label;
     wsWordListEl.appendChild(span);
   }
 }
 
 function wsUpdateProgress(){
-  wsProgressEl.textContent = `${wsFoundWords.size} / ${wsWords.length}`;
+  wsProgressEl.textContent = `${wsFoundOccIds.size} / ${wsOccurrences.length}`;
 }
 
 function wsSyncOverlaySize(){
@@ -1805,12 +1833,6 @@ function wsBuildLineCells(start, end, dir){
   return cells;
 }
 
-function wsWordFromCells(cells){
-  let s = "";
-  for(const p of cells) s += wsGridData[p.r][p.c];
-  return s;
-}
-
 function wsClearPreview(){
   if(wsPreviewShape){
     wsPreviewShape.remove();
@@ -1865,14 +1887,14 @@ function wsRedrawFoundCapsules(){
   }
 }
 
-function wsMarkFound(word, cells){
-  wsFoundWords.add(word);
+function wsMarkFound(occId, cells){
+  wsFoundOccIds.add(occId);
 
-  const wEl = document.getElementById("wsWord-" + word);
+  const wEl = document.getElementById("wsOcc-" + occId);
   if(wEl) wEl.classList.add("found");
 
   wsFoundCapsules.push({
-    word,
+    occId,
     start: cells[0],
     end: cells[cells.length - 1]
   });
@@ -1880,7 +1902,7 @@ function wsMarkFound(word, cells){
   wsRedrawFoundCapsules();
   wsUpdateProgress();
 
-  if(wsFoundWords.size === wsWords.length){
+  if(wsFoundOccIds.size === wsOccurrences.length){
     wsMsgEl.textContent = "🎉 Hai trovato tutte le parole!";
     wsMsgEl.className = "msg ok";
   }
@@ -1904,13 +1926,12 @@ function wsFinishSelection(){
     return;
   }
 
-  const w = wsWordFromCells(cells);
-  const rev = w.split("").reverse().join("");
+  // ✅ VALIDAZIONE PER COORDINATE (no falsi positivi)
+  const key = cells.map(p => `${p.r},${p.c}`).join("|");
+  const occId = wsOccMap.get(key);
 
-  if(wsWordSet.has(w) && !wsFoundWords.has(w)){
-    wsMarkFound(w, cells);
-  } else if(wsWordSet.has(rev) && !wsFoundWords.has(rev)){
-    wsMarkFound(rev, cells);
+  if(occId && !wsFoundOccIds.has(occId)){
+    wsMarkFound(occId, cells);
   }
 
   wsStartPos = null; wsCurrentPos = null; wsLockedDir = null;
@@ -1941,6 +1962,3 @@ init();
 </script>
 </body>
 </html>
-
-
-
