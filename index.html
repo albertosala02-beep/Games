@@ -2613,7 +2613,7 @@ function wsShowWinScreen(){
   const c = document.getElementById("winCheckBtn");
   if(c) c.onclick = winCheckAnagram;
   const rs = document.getElementById("winRestartBtn");
-  if(rs) rs.onclick = () => document.getElementById("resetAllBtn")?.click();
+  if(rs) rs.onclick = () => hardResetGame();
 wsStartFireworks();
 
   // scroll to top of game4 quickly (mobile friendly)
@@ -2624,6 +2624,10 @@ wsStartFireworks();
 /* =========================================================
    INIT
 ========================================================= */
+function hardResetGame(){
+  localStorage.clear();
+  location.reload();
+}
 function init(){
   renderPrizes();
   loadAnagram();
