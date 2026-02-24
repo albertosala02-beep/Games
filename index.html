@@ -2293,13 +2293,6 @@ function wsFinishSelection(){
   wsStartPos = null; wsCurrentPos = null; wsLockedDir = null;
 }
 
-/* =========================================================
-   TAP HANDLERS (patchati)
-========================================================= */
-  cipherMsgEl.textContent = "";
-  cipherMsgEl.className = "msg";
-});
-
 onTap(document.getElementById("cipherCheckBtn"), () => {
   const typed = normalizeCipherInput(cipherAnswerEl.value);
   const expected = normalizeCipherInput(CIPHER_EXPECTED);
