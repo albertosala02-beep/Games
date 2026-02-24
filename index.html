@@ -472,11 +472,23 @@
   }
 
   @media(max-width: 820px){
-    .logicGrid{ grid-template-columns: 120px 1fr; }
-    .logicGrid .logicHeader:nth-child(3){ display:none; }
-    .logicGrid .col3{ display:none; }
+    /* ✅ LOGIC: mobile-first (niente colonne nascoste) */
+    .logicWrap{ max-width: 520px; }
+    .logicGrid{
+      grid-template-columns: 1fr;  /* stack */
+      gap: 8px;
+      align-items: stretch;
+    }
+    .logicGrid > :first-child{ display:none; } /* cella vuota in alto a sinistra */
+    .logicGrid .logicHeader{ display:none; }   /* header "Oggetto/Colore" inutili su mobile */
+    .logicGrid .col3{ display:block; }         /* ✅ non nascondere i colori */
+    .logicRowLabel{ padding: 10px 0 2px; }
+    .logicSelect{ width: 100%; }
   }
   @media(max-width:420px){
+    .btnRow{ gap: 10px; }
+    .btnRow button{ width: 100%; max-width: 420px; }
+
     .slot, .tile, .pTile{ width:40px; height:40px; font-size:18px; }
     #game1 .cipherBox{ font-size:16px; letter-spacing:1px; }
     #game1 .cipherInput{ min-height: 72px; padding: 16px 14px; border-radius: 14px; }
