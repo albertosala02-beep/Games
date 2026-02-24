@@ -513,13 +513,170 @@
     .card{ padding: 12px; }
   }
 
-  /* =========================================================
+  
+  /* ===== WIN SCREEN (Word Search completato) ===== */
+  #wsWin{
+    position: relative;
+    margin-top: 18px;
+    padding: 18px 12px 26px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.88);
+    border: 1px solid rgba(0,0,0,0.10);
+    overflow: hidden;
+  }
+  #wsWin::before{
+    content:"ROAD TO 30  •  ROAD TO 30  •  ROAD TO 30  •  ROAD TO 30  •  ROAD TO 30";
+    position:absolute;
+    inset: 0;
+    display:block;
+    font-weight: 900;
+    letter-spacing: 3px;
+    font-size: 44px;
+    line-height: 1.25;
+    color: rgba(0,0,0,0.06);
+    transform: rotate(-12deg) translateY(10%);
+    white-space: pre-wrap;
+    pointer-events:none;
+  }
+  #wsWin .winTitle{
+    position: relative;
+    font-weight: 900;
+    letter-spacing: 1px;
+    font-size: 34px;
+    margin: 6px 0 6px;
+    color:#1a1a1a;
+    text-shadow: 0 2px 0 rgba(255,255,255,0.6);
+  }
+  #wsWin .winSub{
+    position: relative;
+    font-weight: 800;
+    color:#3a2a10;
+    margin-bottom: 14px;
+  }
+  #wsWin .winTiles{
+    position: relative;
+    display:grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  #wsWin .winKicker{
+    position: relative;
+    display:inline-block;
+    margin: 8px 0 10px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-weight: 900;
+    font-size: 12px;
+    letter-spacing: 1.1px;
+    color:#0b0b0b;
+    background: linear-gradient(90deg, rgba(255,213,79,0.95), rgba(255,90,165,0.90), rgba(85,215,255,0.90));
+  }
+  #wsWin .finalAnaHint{
+    position: relative;
+    margin: 6px auto 10px;
+    max-width: 560px;
+    color:#4a3a22;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+  #wsWin .finalAnaSlots,
+  #wsWin .finalAnaPool{
+    position: relative;
+    display:flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content:center;
+    margin-top: 10px;
+  }
+  #wsWin .finalSlot,
+  #wsWin .finalTile{
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight: 900;
+    font-size: 22px;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  #wsWin .finalSlot{
+    border:2px dashed rgba(0,0,0,0.25);
+    background: rgba(255,255,255,0.65);
+    color:#111;
+  }
+  #wsWin .finalSlot.empty::after{
+    content:"•";
+    color: rgba(0,0,0,0.35);
+    font-size: 22px;
+  }
+  #wsWin .finalTile{
+    border:2px solid rgba(0,0,0,0.18);
+    background: rgba(255,255,255,0.92);
+    cursor:pointer;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.10);
+  }
+
+  @media(max-width:420px){
+    #wsWin .finalSlot, #wsWin .finalTile{ width:44px; height:44px; font-size:20px; }
+  }
+
+  #wsWin .winTile{
+    aspect-ratio: 1/1;
+    border-radius: 14px;
+    background: rgba(17,17,17,0.90);
+    border: 2px solid rgba(17,17,17,0.95);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.12);
+    position: relative;
+  }
+  #wsWin .winTile::after{
+    content:"?";
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight: 900;
+    font-size: 20px;
+    color: rgba(255,255,255,0.92);
+    opacity: 0.9;
+  }
+  #fireworks{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+  }
+
+  /* quando hai vinto: nascondi il resto del gioco */
+  #game4.winDone #wsGridWrap,
+  #game4.winDone #wsWordList,
+  #game4.winDone .wsHint,
+  #game4.winDone .wsBar,
+  #game4.winDone .gameTitle,
+  #game4.winDone .sub,
+  #game4.winDone h2{
+    display:none !important;
+  }
+
+/* =========================================================
      MODALITÀ: GRAN FINALE (solo Word Search)
      Attivata con body.finalOnly
   ========================================================= */
   body.finalOnly{
     padding: 0;
-    background:#0b0b0b;
+    /* ✅ Finale sempre stile "mappa del tesoro" (anche mentre giochi) */
+    background:
+      radial-gradient(900px 520px at 50% 18%, rgba(255,255,255,0.55), rgba(255,255,255,0.08)),
+      linear-gradient(135deg, rgba(255,213,79,0.18), rgba(255,90,165,0.10), rgba(85,215,255,0.10)),
+      radial-gradient(1200px 900px at 50% 70%, rgba(40,25,10,0.08), rgba(0,0,0,0.06)),
+      #f3e3c6;
   }
   body.finalOnly .wrap{
     max-width: 1200px;
@@ -544,29 +701,31 @@
     display:none !important;
   }
   body.finalOnly #game4 h2{
-    color:#fff;
+    color:#1a1a1a;
     margin-top: 4px;
     letter-spacing: 0.4px;
+    text-shadow: 0 2px 0 rgba(255,255,255,0.65);
   }
   body.finalOnly #game4 .wsHint{
-    color:#cfcfcf;
+    color:#4a3a22;
+    font-weight: 700;
   }
   body.finalOnly #game4 .chip{
-    background: rgba(255,255,255,0.08);
-    border-color: rgba(255,255,255,0.18);
-    color:#fff;
+    background: rgba(255,255,255,0.65);
+    border-color: rgba(0,0,0,0.12);
+    color:#111;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.08);
   }
   body.finalOnly #game4 .wsWord{
-    color:#e8e8e8;
+    color:#1a1a1a;
   }
   body.finalOnly #game4 .wsWord.found{
-    color:#9a9a9a;
+    color:#777;
   }
   body.finalOnly #game4 .msg{
-    color:#fff;
+    color:#1a1a1a;
   }
-
-  /* =========================================================
+/* =========================================================
      OVERLAY “GRAN FINALE”
   ========================================================= */
   .finalOverlay{
@@ -819,6 +978,27 @@
     <div class="wsWordList" id="wsWordList"></div>
 
     <div class="msg" id="wsMsg"></div>
+    <!-- WIN SCREEN (mostrata quando trovi tutte le parole) -->
+    <div id="wsWin" class="hidden" aria-hidden="true">
+      <div class="winTitle">ROAD TO 30</div>
+      <div class="winSub">🎉 Gran finale completato!</div>
+
+      <div class="winKicker">Lettere della meta</div>
+      <div class="finalAnaSlots" id="winSlots" aria-label="Spazi meta"></div>
+      <div class="finalAnaHint">Tocca le lettere per riempire gli spazi. Tocca uno spazio per liberarlo.</div>
+      <div class="finalAnaPool" id="winPool" aria-label="Lettere disponibili"></div>
+      <div class="btnRow" style="margin-top:10px;">
+        <button class="secondary" id="winResetBtn">Reset</button>
+        <button id="winCheckBtn">Controlla</button>
+      </div>
+      <div class="msg" id="winMsg"></div>
+
+      <div class="winKicker" style="margin-top:14px;">30 tasselli</div>
+      <div class="winTiles" id="winTiles" aria-label="30 tasselli vuoti"></div>
+
+      <canvas id="fireworks"></canvas>
+    </div>
+
   </div>
 
 </div>
@@ -1179,6 +1359,10 @@ function showGame(){
 
   const isFinal = (games[currentGameIndex] === "game4");
   document.body.classList.toggle("finalOnly", isFinal);
+  if(!isFinal){ document.body.classList.remove("finalWin"); }
+  if(isFinal && !document.getElementById("game4").classList.contains("winDone")){
+    document.body.classList.remove("finalWin");
+  }
 
   if(isFinal){
     initWordSearchOnce();
@@ -1370,6 +1554,53 @@ const cwBanner = document.getElementById("cwBanner");
 let cwDirMode = "A"; // default: orizzontale
 
 let cwLastTap = { r:null, c:null, t:0 };
+let cwActiveWordKey = null; // es. "A3" o "D7"
+
+function cwSetActiveWordFromCell(r,c){
+  // Se l'utente tocca una nuova cella, scegli la parola più sensata e "blocca" il percorso fino a fine parola.
+  const dir = cwChooseDir(r,c);
+  cwDirMode = dir;
+  const w = cwWordAt(r,c,dir) || cwWordAt(r,c,(dir==="A"?"D":"A"));
+  cwActiveWordKey = w ? `${w.dir}${w.num}` : null;
+}
+
+function cwGetActiveWord(){
+  if(!cwActiveWordKey) return null;
+  const dir = cwActiveWordKey[0];
+  const num = parseInt(cwActiveWordKey.slice(1), 10);
+  return CW_WORDS.find(w => w.dir === dir && w.num === num) || null;
+}
+
+function cwIndexInWord(w, r, c){
+  if(!w) return -1;
+  const cells = cwWordCells(w);
+  const k = `${r},${c}`;
+  return cells.findIndex(([rr,cc]) => `${rr},${cc}` === k);
+}
+
+function cwFocusNextInWord(w, r, c){
+  if(!w){ cwFocusNextInDir(r,c,cwDirMode); return; }
+  const cells = cwWordCells(w);
+  const i = cwIndexInWord(w,r,c);
+  if(i >= 0 && i < cells.length-1){
+    const [nr,nc] = cells[i+1];
+    cwGetInput(nr,nc)?.focus();
+    return;
+  }
+  // fine parola: non cambiare strada automaticamente
+}
+
+function cwFocusPrevInWord(w, r, c){
+  if(!w){ cwFocusPrevInDir(r,c,cwDirMode); return; }
+  const cells = cwWordCells(w);
+  const i = cwIndexInWord(w,r,c);
+  if(i > 0){
+    const [pr,pc] = cells[i-1];
+    cwGetInput(pr,pc)?.focus();
+    return;
+  }
+}
+
 function cwToggleDir(){
   cwDirMode = (cwDirMode === "A") ? "D" : "A";
 }
@@ -1512,11 +1743,12 @@ function cwCellKey(r,c){ return `${r},${c}`; }
 function cwHighlightActive(r,c){
   cwClearActive();
 
-  // Preferisci la direzione corrente; se non esiste parola in quella direzione, prova l'altra
-  let w = cwWordAt(r,c,cwDirMode);
-  if(!w){
-    const other = (cwDirMode === "A") ? "D" : "A";
-    w = cwWordAt(r,c,other);
+  // Se c'è una parola attiva e la cella fa parte di quella parola, resta su quella.
+  let w = cwGetActiveWord();
+  if(!(w && cwIndexInWord(w,r,c) >= 0)){
+    // altrimenti scegli e blocca una nuova parola dalla cella
+    cwSetActiveWordFromCell(r,c);
+    w = cwGetActiveWord();
   }
   if(!w) return;
 
@@ -1598,16 +1830,16 @@ function cwBuildGrid(){
         const v = (e.target.value || "").toUpperCase();
         e.target.value = v.replace(/[^A-Z]/g,"").slice(0,1);
         cwValidateAll();
-        if(e.target.value) cwFocusNextInDir(r,c, cwDirMode);
+        if(e.target.value) cwFocusNextInWord(cwGetActiveWord(), r, c);
       });
 
       input.addEventListener("keydown", (e) => {
-        if(e.key === "Backspace" && !e.target.value) cwFocusPrevInDir(r,c, cwDirMode);
+        if(e.key === "Backspace" && !e.target.value) cwFocusPrevInWord(cwGetActiveWord(), r, c);
       });
 
       input.addEventListener("focus", () => {
         // auto direction on focus
-        cwDirMode = cwChooseDir(r,c);
+        cwSetActiveWordFromCell(r,c);
         cwHighlightActive(r,c);
       });
 
@@ -1616,6 +1848,9 @@ function cwBuildGrid(){
         const now = Date.now();
         if(cwLastTap.r === r && cwLastTap.c === c && (now - cwLastTap.t) < 420){
           cwToggleDir();
+          // ricalcola parola attiva sulla stessa cella con nuova direzione
+          const w = cwWordAt(r,c,cwDirMode) || cwWordAt(r,c,(cwDirMode==="A"?"D":"A"));
+          cwActiveWordKey = w ? `${w.dir}${w.num}` : null;
           cwHighlightActive(r,c);
         }
         cwLastTap = { r, c, t: now };
@@ -2026,6 +2261,7 @@ function wsMarkFound(occId, cells){
   if(wsFoundOccIds.size === wsOccurrences.length){
     wsMsgEl.textContent = "🎉 Hai trovato tutte le parole!";
     wsMsgEl.className = "msg ok";
+    wsShowWinScreen();
   }
 }
 
@@ -2169,12 +2405,223 @@ onTap(document.getElementById("resetAllBtn"), () => {
 
   wsResetInMemory();
 
+  // reset win screen
+  document.getElementById("game4").classList.remove("winDone");
+  const w = document.getElementById("wsWin");
+  if(w){ w.classList.add("hidden"); w.setAttribute("aria-hidden","true"); }
+  fwRunning = false;
+  winSlotsState = [];
+  winPoolState = [];
+
+
+
   document.body.classList.remove("finalOnly");
+  document.body.classList.remove("finalWin");
 
   renderPrizes();
   renderSteps();
   showGame();
 });
+
+
+
+const FINAL_DEST = String(PUZZLE.message || "").toUpperCase(); // es. "ANTIGUA"
+let winSlotsState = [];
+let winPoolState = [];
+
+function winShuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function winResetAnagram(){
+  winSlotsState = Array(FINAL_DEST.length).fill(null);
+  winPoolState = winShuffle(FINAL_DEST.split(""));
+  winRenderAnagram();
+  const msg = document.getElementById("winMsg");
+  if(msg){ msg.textContent = ""; msg.className = "msg"; }
+}
+
+function winRenderAnagram(){
+  const slotsEl = document.getElementById("winSlots");
+  const poolEl  = document.getElementById("winPool");
+  if(!slotsEl || !poolEl) return;
+
+  slotsEl.innerHTML = "";
+  for(let i=0;i<winSlotsState.length;i++){
+    const d = document.createElement("div");
+    const filled = !!winSlotsState[i];
+    d.className = "finalSlot " + (filled ? "" : "empty");
+    d.dataset.idx = i;
+    if(filled) d.textContent = winSlotsState[i];
+    d.addEventListener("pointerup", (e)=>{
+      e.preventDefault();
+      if(!winSlotsState[i]) return;
+      winPoolState.push(winSlotsState[i]);
+      winSlotsState[i] = null;
+      winRenderAnagram();
+    });
+    slotsEl.appendChild(d);
+  }
+
+  poolEl.innerHTML = "";
+  for(let pi=0; pi<winPoolState.length; pi++){
+    const ch = winPoolState[pi];
+    const t = document.createElement("div");
+    t.className = "finalTile";
+    t.textContent = ch;
+    t.addEventListener("pointerup", (e)=>{
+      e.preventDefault();
+      const idx = winSlotsState.findIndex(x=>!x);
+      if(idx === -1) return;
+      winSlotsState[idx] = ch;
+      winPoolState.splice(pi,1);
+      winRenderAnagram();
+    });
+    poolEl.appendChild(t);
+  }
+}
+
+function winCheckAnagram(){
+  const msg = document.getElementById("winMsg");
+  if(!msg) return;
+
+  if(winSlotsState.some(x=>!x)){
+    msg.textContent = "Completa tutti gli spazi prima di controllare.";
+    msg.className = "msg bad";
+    return;
+  }
+  const guess = winSlotsState.join("");
+  if(guess === FINAL_DEST){
+    msg.textContent = `✅ Meta scoperta: ${FINAL_DEST}`;
+    msg.className = "msg ok";
+  }else{
+    msg.textContent = "❌ Non è corretto. Riprova.";
+    msg.className = "msg bad";
+  }
+}
+
+function wsBuildWinTiles(){
+  const wrap = document.getElementById("winTiles");
+  if(!wrap) return;
+  if(wrap.childElementCount) return;
+  for(let i=0;i<30;i++){
+    const d = document.createElement("div");
+    d.className = "winTile";
+    wrap.appendChild(d);
+  }
+}
+
+let fwRunning = false;
+function wsStartFireworks(){
+  const canvas = document.getElementById("fireworks");
+  if(!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if(!ctx) return;
+
+  const resize = () => {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.floor(rect.width * devicePixelRatio);
+    canvas.height = Math.floor(rect.height * devicePixelRatio);
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  };
+  resize();
+  window.addEventListener("resize", resize);
+
+  const sparks = [];
+  const rand = (a,b)=>a+Math.random()*(b-a);
+
+  function burst(){
+    const rect = canvas.getBoundingClientRect();
+    const x = rand(rect.width*0.15, rect.width*0.85);
+    const y = rand(rect.height*0.15, rect.height*0.55);
+    const n = Math.floor(rand(18, 28));
+    for(let i=0;i<n;i++){
+      const ang = rand(0, Math.PI*2);
+      const spd = rand(2.2, 5.8);
+      sparks.push({
+        x, y,
+        vx: Math.cos(ang)*spd,
+        vy: Math.sin(ang)*spd,
+        life: rand(40, 70),
+        r: rand(1.8, 3.2),
+        hue: rand(0, 360)
+      });
+    }
+  }
+
+  let frames = 0;
+  fwRunning = true;
+
+  function tick(){
+    if(!fwRunning) return;
+    frames++;
+
+    // fade trail
+    ctx.fillStyle = "rgba(255,255,255,0.12)";
+    ctx.fillRect(0,0,canvas.width/devicePixelRatio,canvas.height/devicePixelRatio);
+
+    if(frames % 18 === 0) burst();
+
+    for(let i=sparks.length-1;i>=0;i--){
+      const p = sparks[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.06; // gravity
+      p.vx *= 0.985;
+      p.vy *= 0.985;
+      p.life -= 1;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = `hsla(${p.hue}, 95%, 55%, 0.9)`;
+      ctx.fill();
+
+      if(p.life <= 0) sparks.splice(i,1);
+    }
+
+    // stop after a while
+    if(frames < 360 || sparks.length){
+      requestAnimationFrame(tick);
+    }else{
+      fwRunning = false;
+    }
+  }
+
+  // clear initial
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  burst(); burst();
+  requestAnimationFrame(tick);
+}
+
+function wsShowWinScreen(){
+  const g4 = document.getElementById("game4");
+  const win = document.getElementById("wsWin");
+  if(!g4 || !win) return;
+
+  g4.classList.add("winDone");
+  document.body.classList.add("finalWin");
+  win.classList.remove("hidden");
+  win.setAttribute("aria-hidden","false");
+
+  wsBuildWinTiles();
+  // setup anagram meta
+  winResetAnagram();
+  const r = document.getElementById("winResetBtn");
+  const c = document.getElementById("winCheckBtn");
+  if(r) r.onclick = winResetAnagram;
+  if(c) c.onclick = winCheckAnagram;
+
+  wsStartFireworks();
+
+  // scroll to top of game4 quickly (mobile friendly)
+  const top = g4.getBoundingClientRect().top + window.scrollY - 10;
+  window.scrollTo({ top, behavior: "auto" });
+}
 
 /* =========================================================
    INIT
