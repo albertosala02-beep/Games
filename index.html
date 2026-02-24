@@ -689,7 +689,8 @@
     max-width: 1200px;
     padding: 18px 12px 24px;
   }
-    body.finalOnly #game1,
+  body.finalOnly .stepNav,
+  body.finalOnly #game1,
   body.finalOnly #game2,
   body.finalOnly #game3,
   body.finalOnly .card:first-of-type{
@@ -813,33 +814,19 @@
     100%{ transform: translateX(160%); opacity: 0.35; }
   }
 
-  .finalFab{
+  /* ===== FLOATING RESTART (sempre accessibile) ===== */
+  .fabRestart{
     position: fixed;
-    right: 16px;
-    bottom: 16px;
-    z-index: 9999;
-    width: 54px;
-    height: 54px;
-    border-radius: 16px;
-    border: 2px solid rgba(40,25,10,0.35);
-    background: rgba(255,255,255,0.78);
-    box-shadow: 0 14px 36px rgba(0,0,0,0.20);
+    right: 14px;
+    bottom: 14px;
+    z-index: 9998;
+    border-radius: 999px;
+    padding: 12px 14px;
     font-weight: 900;
-    font-size: 22px;
-    cursor: pointer;
-    touch-action: manipulation;
+    display:none;
   }
-  .finalFab.hidden{ display:none !important; }
-
-
-  /* Finale: mostra la navigazione anche nel game4 */
-  body.finalOnly .stepNav{
-    position: sticky;
-    top: 10px;
-    z-index: 50;
-    margin-top: 10px;
-    margin-bottom: 12px;
-  }
+  body.finalOnly .fabRestart{ display:block; }
+  body.debugMode .fabRestart{ display:block; }
 
 </style>
 </head>
@@ -861,7 +848,7 @@
     <div class="prizeRow" id="prizeRow" aria-label="Premi"></div>
 
     <div class="btnRow">
-      <button class="secondary" id="resetAllBtn">Reset Gioco</button>
+      <button type="button" class="secondary" id="resetAllBtn">Reset Gioco</button>
     </div>
 
     <div class="msg" id="prizeMsg"></div>
@@ -880,16 +867,14 @@
       <div class="pool" id="anaPool"></div>
 
       <div class="btnRow">
-<button id="anaCheckBtn">Controlla</button>
+<button type="button" id="anaCheckBtn">Controlla</button>
       </div>
       <div class="msg" id="anaMsg"></div>
     </div>
   </div>
 
-  <div id="bootErr" class="card hidden" style="max-width:900px;margin:0 auto 14px;text-align:left;"><div style="font-weight:900;">⚠️ Errore di avvio JS</div><div class="sub" id="bootErrMsg"></div></div>
-
   <!-- ======= NAV (numeri) ======= -->
-  <div class="stepNav" id="stepNav"><div class="step active">1</div><div class="step locked">2</div><div class="step locked">3</div></div>
+  <div class="stepNav" id="stepNav"></div>
 
   <!-- ======= GAME 1 — Cifrario (1 tile) ======= -->
   <div class="card" id="game1">
@@ -904,7 +889,7 @@
     <textarea class="cipherInput cipherArea" id="cipherAnswer" rows="2" placeholder="Inserisci la frase decodificata"></textarea>
 
     <div class="btnRow">
-<button id="cipherCheckBtn">Controlla</button>
+<button type="button" id="cipherCheckBtn">Controlla</button>
     </div>
 
     <div class="msg" id="cipherMsg"></div>
@@ -947,7 +932,7 @@
       </ul>
 
       <div class="btnRow">
-<button id="logicCheckBtn">Controlla</button>
+<button type="button" id="logicCheckBtn">Controlla</button>
       </div>
 
       <div class="msg" id="logicMsg"></div>
@@ -966,7 +951,7 @@
         <div id="cwGrid" aria-label="Cruciverba"></div>
 
         <div class="btnRow">
-<button id="cwCheckBtn">Controlla</button>
+<button type="button" id="cwCheckBtn">Controlla</button>
         </div>
 
         <div class="msg" id="cwBanner"></div>
@@ -1021,7 +1006,8 @@
       <div class="finalAnaHint">Tocca le lettere per riempire gli spazi. Tocca uno spazio per liberarlo.</div>
       <div class="finalAnaPool" id="winPool" aria-label="Lettere disponibili"></div>
       <div class="btnRow" style="margin-top:10px;">
-<button id="winCheckBtn">Controlla</button>
+<button type="button" id="winCheckBtn">Controlla</button>
+<button type="button" class="secondary" id="winRestartBtn">Ricomincia</button>
       </div>
       <div class="msg" id="winMsg"></div>
 
@@ -1034,6 +1020,7 @@
   </div>
 
 </div>
+<button type="button" id="fabRestart" class="fabRestart secondary">Ricomincia</button>
 
 <!-- OVERLAY GRAN FINALE -->
 <div id="finalOverlay" class="finalOverlay hidden" aria-hidden="true">
@@ -1115,57 +1102,6 @@ const PUZZLE = {
     {"word":"NOI","cells":[[11,7],[11,8],[11,9]],"dir":[0,1],"start":[11,7]},
     {"word":"NORD","cells":[[9,6],[9,5],[9,4],[9,3]],"dir":[0,-1],"start":[9,6]}
   ]
-
-/* =========================================================
-   DEBUG (solo per sviluppo)
-   Attivalo aggiungendo ?debug=1 all'URL
-========================================================= */
-const DEBUG = new URLSearchParams(location.search).get("debug") === "1";
-
-function debugUnlockAll(){
-  localStorage.setItem("prize_count", "7");
-  localStorage.setItem("games_done", JSON.stringify({ game1:true, game2:true, game3:true }));
-  localStorage.setItem("anagram_done", "1");
-  localStorage.setItem("final_unlocked", "1");
-  localStorage.setItem("current_game", "game4");
-}
-
-function debugForceWinFinale(){
-  debugUnlockAll();
-  try{ currentGameIndex = games.indexOf("game4"); }catch{}
-  try{
-    showGame();
-    setTimeout(()=>{ try{ wsShowWinScreen(); }catch(e){} }, 150);
-  }catch(e){}
-}
-
-/* =========================================================
-   DEBUG (solo per sviluppo)
-   - ?debug=1  -> sblocca tutto e ti porta al game4
-   - ?win=1    -> forza anche la schermata di vittoria del finale
-========================================================= */
-const QS = new URLSearchParams(location.search);
-const DEBUG = QS.get("debug") === "1";
-const FORCE_WIN = QS.get("win") === "1";
-
-function debugUnlockAll(){
-  try{
-    localStorage.setItem("prize_count", "7");
-    localStorage.setItem("games_done", JSON.stringify({ game1:true, game2:true, game3:true }));
-    localStorage.setItem("anagram_done", "1");
-    localStorage.setItem("final_unlocked", "1");
-    localStorage.setItem("current_game", "game4");
-  }catch{}
-}
-
-function debugForceWinFinale(){
-  debugUnlockAll();
-  try{
-    currentGameIndex = games.indexOf("game4");
-    showGame();
-    setTimeout(()=>{ try{ wsShowWinScreen(); }catch(e){} }, 200);
-  }catch(e){}
-}
 };
 
 /* =========================================================
@@ -1379,6 +1315,12 @@ function runFinaleTransitionAndEnter(){
 
     currentGameIndex = games.indexOf("game4");
     showGame();
+
+  // opzionale: forza direttamente la schermata "win" del finale
+  if(isWinFlag()){
+    setTimeout(()=>{ try{ wsShowWinScreen(); }catch(e){} }, 250);
+  }
+
   }, 1150);
 }
 
@@ -1441,9 +1383,6 @@ function showGame(){
   renderSteps();
 
   const isFinal = (games[currentGameIndex] === "game4");
-  const fab = document.getElementById("finalRestartFab");
-  if(fab){ fab.classList.toggle("hidden", !isFinal); }
-
   document.body.classList.toggle("finalOnly", isFinal);
   if(!isFinal){ document.body.classList.remove("finalWin"); }
   if(isFinal && !document.getElementById("game4").classList.contains("winDone")){
@@ -1453,6 +1392,9 @@ function showGame(){
   if(isFinal){
     initWordSearchOnce();
     wsSetResponsiveCellSize();
+    if(isWinFlag()){
+      setTimeout(()=>{ try{ wsShowWinScreen(); }catch(e){} }, 250);
+    }
   }
 
   const fast = window.matchMedia && window.matchMedia("(max-width: 820px)").matches;
@@ -2709,15 +2651,47 @@ wsStartFireworks();
    INIT
 ========================================================= */
 
-function hardResetGame(){
-  try{ localStorage.clear(); }catch{}
-  location.reload();
+/* =========================================================
+   DEBUG MODE (?debug=1)
+   - sblocca direttamente il GRAN FINALE senza risolvere tutto
+========================================================= */
+function isWinFlag(){
+  try{ const p = new URLSearchParams(location.search); return p.get("win") === "1"; }
+  catch{ return false; }
 }
+
+function isDebugMode(){
+  try{
+    const p = new URLSearchParams(location.search);
+    return p.get("debug") === "1";
+  }catch{ return false; }
+}
+function enableDebugMode(){
+  document.body.classList.add("debugMode");
+
+  // sblocca risorse/step
+  setPrizeCount(TOTAL_TILES);
+  localStorage.setItem(STORAGE_GAME_DONE, JSON.stringify({ game1:true, game2:true, game3:true }));
+  localStorage.setItem(STORAGE_ANAGRAM_DONE, "1");
+  localStorage.setItem(STORAGE_FINAL_UNLOCKED, "1");
+  localStorage.setItem(STORAGE_CURRENT_GAME, "game4");
+
+  // aggiorna UI
+  renderPrizes();
+  loadAnagram();
+  renderAnagram();
+  renderSteps();
+
+  // entra nel finale
+  currentGameIndex = games.indexOf("game4");
+  showGame();
+}
+
+onTap(document.getElementById("fabRestart"), () => {
+  document.getElementById("resetAllBtn")?.click();
+});
+
 function init(){
-  if(DEBUG){ debugUnlockAll(); }
-
-  if(DEBUG){ debugUnlockAll(); }
-
   renderPrizes();
   loadAnagram();
   if(allPrizesCollected()){
@@ -2732,34 +2706,15 @@ function init(){
   cwBuildGrid();
   cwValidateAll();
 
+  if(isDebugMode()){
+    enableDebugMode();
+    return;
+  }
+
   renderSteps();
   restoreCurrentGame();
-
-  const fab = document.getElementById("finalRestartFab");
-  if(fab) fab.onclick = hardResetGame;
-
-  if(DEBUG){
-    window.addEventListener("keydown", (e)=>{
-      if(e.shiftKey && (e.key === "D" || e.key === "d")) debugForceWinFinale();
-    });
-  }
-
 }
-try{
-  init();
-}catch(e){
-  console.error(e);
-  const b=document.getElementById('bootErr');
-  const m=document.getElementById('bootErrMsg');
-  if(b&&m){
-    b.classList.remove('hidden');
-    m.textContent = (e && e.message) ? e.message : String(e);
-  }
-}
+init();
 </script>
-
-<!-- FLOATING RESTART (visibile nel finale, anche senza vittoria) -->
-<button id="finalRestartFab" class="finalFab hidden" aria-label="Rinizia gioco">↻</button>
-
 </body>
 </html>
