@@ -1138,6 +1138,34 @@ function debugForceWinFinale(){
     setTimeout(()=>{ try{ wsShowWinScreen(); }catch(e){} }, 150);
   }catch(e){}
 }
+
+/* =========================================================
+   DEBUG (solo per sviluppo)
+   - ?debug=1  -> sblocca tutto e ti porta al game4
+   - ?win=1    -> forza anche la schermata di vittoria del finale
+========================================================= */
+const QS = new URLSearchParams(location.search);
+const DEBUG = QS.get("debug") === "1";
+const FORCE_WIN = QS.get("win") === "1";
+
+function debugUnlockAll(){
+  try{
+    localStorage.setItem("prize_count", "7");
+    localStorage.setItem("games_done", JSON.stringify({ game1:true, game2:true, game3:true }));
+    localStorage.setItem("anagram_done", "1");
+    localStorage.setItem("final_unlocked", "1");
+    localStorage.setItem("current_game", "game4");
+  }catch{}
+}
+
+function debugForceWinFinale(){
+  debugUnlockAll();
+  try{
+    currentGameIndex = games.indexOf("game4");
+    showGame();
+    setTimeout(()=>{ try{ wsShowWinScreen(); }catch(e){} }, 200);
+  }catch(e){}
+}
 };
 
 /* =========================================================
@@ -2686,6 +2714,8 @@ function hardResetGame(){
   location.reload();
 }
 function init(){
+  if(DEBUG){ debugUnlockAll(); }
+
   if(DEBUG){ debugUnlockAll(); }
 
   renderPrizes();
