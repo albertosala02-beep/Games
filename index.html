@@ -8,22 +8,42 @@
 <style>
   :root{ --gap: 3px; --cell: 34px; }
 
+  /* ✅ Fix responsività iPhone: box model coerente */
+  *, *::before, *::after{ box-sizing: border-box; }
+
+  /* =========================================================
+     TEMA "MAPPA DEL TESORO"
+     (no immagini esterne: solo gradient + texture)
+  ========================================================= */
   body{
     font-family: Arial, sans-serif;
-    background:#f2f2f2;
     margin:0;
     padding:14px;
     text-align:center;
+
+    /* parchment + vignette */
+    background:
+      radial-gradient(900px 500px at 50% 15%, rgba(255,255,255,0.55), rgba(255,255,255,0) 65%),
+      radial-gradient(1200px 700px at 50% 110%, rgba(0,0,0,0.22), rgba(0,0,0,0) 55%),
+      /* subtle paper fibers */
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 1px, rgba(0,0,0,0) 6px, rgba(0,0,0,0) 14px),
+      /* parchment base */
+      linear-gradient(135deg, #f4e7c8, #edd8a9);
+    color:#2b2418;
   }
+
   .wrap{ max-width: 1100px; margin: 0 auto; }
 
   .card{
-    background:#fff;
-    border:1px solid #ddd;
-    border-radius:14px;
+    background:
+      radial-gradient(900px 300px at 50% 0%, rgba(255,255,255,0.55), rgba(255,255,255,0) 70%),
+      linear-gradient(180deg, rgba(255,255,255,0.75), rgba(255,255,255,0.60));
+    border:1px solid rgba(80,60,30,0.22);
+    border-radius:16px;
     padding:14px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.12);
     margin: 0 auto 14px;
+    backdrop-filter: blur(2px);
   }
 
   .topRow{
@@ -35,33 +55,62 @@
   }
 
   .chip{
-    background:#fff;
-    border:1px solid #ddd;
+    background: rgba(255,255,255,0.70);
+    border:1px solid rgba(80,60,30,0.22);
     border-radius:999px;
     padding:8px 12px;
     font-weight:900;
     font-size:13px;
-    color:#333;
+    color:#2b2418;
     display:inline-block;
   }
 
-  .sub{ color:#555; font-size:13px; margin:10px 0 0; }
+  .sub{ color:#3b3326; font-size:13px; margin:10px 0 0; }
 
+  /* ✅ Evita zoom iOS e input "compressi" */
+  input, select, textarea{
+    font-size: 16px;              /* iOS: evita zoom automatico */
+    max-width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* ===== BOTTONI "TESORO" ===== */
   button{
     border:0;
     border-radius:999px;
-    padding:10px 14px;
+    padding:11px 16px;
     font-weight:900;
-    background:#111;
-    color:#fff;
     cursor:pointer;
+
+    /* gold coin */
+    color:#2b2418;
+    background: linear-gradient(180deg, #ffe08a, #f3b83a);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.70),
+      inset 0 -2px 0 rgba(0,0,0,0.20),
+      0 8px 18px rgba(0,0,0,0.18);
+    border:1px solid rgba(80,60,30,0.30);
+
+    /* ✅ tap più affidabile su iOS */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
-  button.secondary{ background:#e0e0e0; color:#111; }
-  button:disabled{ opacity:0.5; cursor:not-allowed; }
+  button:hover{ filter: brightness(1.02); }
+  button:active{ transform: translateY(1px); box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.60),
+      inset 0 -1px 0 rgba(0,0,0,0.16),
+      0 6px 14px rgba(0,0,0,0.16); }
+
+  button.secondary{
+    background: linear-gradient(180deg, #ffffff, #eadfca);
+    color:#2b2418;
+  }
+  button:disabled{ opacity:0.5; cursor:not-allowed; transform:none; }
 
   .msg{ margin-top:10px; font-weight:900; min-height: 22px; }
-  .ok{ color:#2e7d32; }
-  .bad{ color:#c62828; }
+  .ok{ color:#1b6b2a; }
+  .bad{ color:#9f1f1f; }
 
   .gameTitle{ font-weight:900; font-size:16px; margin: 2px 0 8px; }
   .hidden{ display:none !important; }
@@ -70,38 +119,41 @@
   .stepNav{
     display:flex;
     justify-content:center;
-    gap:16px;
+    gap:14px;
     margin-bottom:14px;
     flex-wrap:wrap;
   }
   .step{
-    width:42px;
-    height:42px;
+    width:44px;
+    height:44px;
     border-radius:50%;
     display:flex;
     align-items:center;
     justify-content:center;
     font-weight:900;
-    border:2px solid #ccc;
-    background:#fff;
+    border:2px solid rgba(80,60,30,0.25);
+    background: rgba(255,255,255,0.70);
     cursor:pointer;
     transition:all .2s;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.10);
+    user-select:none;
   }
   .step.locked{
-    background:#eee;
-    color:#999;
-    border-color:#ddd;
+    background: rgba(255,255,255,0.35);
+    color:#8f876f;
+    border-color: rgba(80,60,30,0.14);
     cursor:not-allowed;
+    box-shadow:none;
   }
   .step.active{
-    background:#111;
-    color:#fff;
-    border-color:#111;
+    background: linear-gradient(180deg, #ffe08a, #f3b83a);
+    color:#2b2418;
+    border-color: rgba(80,60,30,0.30);
   }
   .step.done{
-    background:#34a853;
-    color:#fff;
-    border-color:#34a853;
+    background: linear-gradient(180deg, #8cf0b0, #34a853);
+    color:#0b2b13;
+    border-color:#2c8a45;
   }
 
   /* ===== PREMI (tasselli coperti finché non li hai tutti) ===== */
@@ -121,14 +173,15 @@
     justify-content:center;
     font-weight:900;
     font-size:20px;
-    border:2px solid #cfcfcf;
-    background:#fff;
+    border:2px solid rgba(80,60,30,0.22);
+    background: rgba(255,255,255,0.75);
     user-select:none;
     -webkit-user-select:none;
     position:relative;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.08);
   }
   .pTile.covered{
-    background:#111;
+    background: linear-gradient(180deg, #2b2418, #111);
     border-color:#111;
     color:#111;
   }
@@ -144,10 +197,10 @@
     opacity:.9;
   }
   .pTile.empty{
-    background:#fafafa;
+    background: rgba(255,255,255,0.55);
     border-style:dashed;
-    border-color:#cfcfcf;
-    color:#fafafa;
+    border-color: rgba(80,60,30,0.22);
+    color: transparent;
   }
   .pTile.empty::after{
     content:"•";
@@ -157,7 +210,7 @@
     align-items:center;
     justify-content:center;
     font-size:22px;
-    color:#bdbdbd;
+    color: rgba(80,60,30,0.35);
   }
 
   /* ===== ANAGRAM ===== */
@@ -181,11 +234,11 @@
     -webkit-user-select:none;
     touch-action:none;
   }
-  .slot{ border:2px dashed #bdbdbd; background:#fafafa; color:#111; }
-  .slot.empty::after{ content:"•"; color:#9e9e9e; font-size:22px; line-height:1; }
-  .slot.filled{ border-style: solid; border-color:#cfcfcf; background:#fff; }
+  .slot{ border:2px dashed rgba(80,60,30,0.25); background: rgba(255,255,255,0.55); color:#111; }
+  .slot.empty::after{ content:"•"; color: rgba(80,60,30,0.40); font-size:22px; line-height:1; }
+  .slot.filled{ border-style: solid; border-color: rgba(80,60,30,0.22); background: rgba(255,255,255,0.78); }
   .slot.filled::after{ content:""; }
-  .tile{ border:2px solid #cfcfcf; background:#fff; cursor: grab; }
+  .tile{ border:2px solid rgba(80,60,30,0.22); background: rgba(255,255,255,0.78); cursor: grab; }
   .tile:active{ cursor:grabbing; }
 
   /* ===== GAME 3: CROSSWORD ===== */
@@ -200,8 +253,8 @@
   }
   .gridWrap{
     display:inline-block;
-    background:#fff;
-    border:1px solid #ddd;
+    background: rgba(255,255,255,0.70);
+    border:1px solid rgba(80,60,30,0.22);
     border-radius:14px;
     padding:12px;
   }
@@ -226,14 +279,14 @@
   .cwCell .num{
     position:absolute;
     top:3px; left:5px;
-    font-size:10px; font-weight:900; color:#666;
+    font-size:10px; font-weight:900; color:#6b5e46;
     pointer-events:none;
   }
   .cwCell input{
     width:100%; height:100%;
-    border:1px solid #cfcfcf;
+    border:1px solid rgba(80,60,30,0.25);
     border-radius:10px;
-    background:#fff;
+    background: rgba(255,255,255,0.85);
     text-align:center;
     font-weight:900;
     font-size: calc(var(--cell) * 0.55);
@@ -243,12 +296,12 @@
     touch-action:none;
   }
   .cwCell input:focus{ border-color:#111; box-shadow: 0 0 0 2px rgba(0,0,0,0.10); }
-  .cwCell.active input{ background:#fff7e6; border-color:#f0c36d; }
+  .cwCell.active input{ background:#fff2d9; border-color:#f0c36d; }
   .cwCell.correct input{ background:#ecfff1; border-color:#34a853; box-shadow:none; }
 
   .panel{
-    background:#fff;
-    border:1px solid #ddd;
+    background: rgba(255,255,255,0.70);
+    border:1px solid rgba(80,60,30,0.22);
     border-radius:14px;
     padding:12px;
     text-align:left;
@@ -263,9 +316,10 @@
     .clues{ grid-template-columns: 1fr 1fr; }
   }
   .clueCol{
-    border:1px solid #eee;
+    border:1px solid rgba(80,60,30,0.14);
     border-radius:12px;
     padding:10px;
+    background: rgba(255,255,255,0.45);
   }
   .clueCol h4{ margin:0 0 8px; font-size:14px; }
   .clue{ margin: 7px 0; line-height:1.35; font-size:13px; }
@@ -290,14 +344,26 @@
   .cipherInput{
     width: 100%;
     max-width: 780px;
-    padding: 12px;
-    font-size: 16px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
+    padding: 14px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(80,60,30,0.25);
     outline:none;
     text-transform: uppercase;
+    display:block;
+    margin: 0 auto;
+
+    /* ✅ più “verso il basso” */
+    min-height: 56px;
+    line-height: 1.35;
+
+    background: rgba(255,255,255,0.80);
+    color:#2b2418;
   }
-  .cipherInput:focus{ border-color:#111; box-shadow: 0 0 0 2px rgba(0,0,0,0.10); }
+  .cipherInput:focus{ border-color:#2b2418; box-shadow: 0 0 0 2px rgba(0,0,0,0.10); }
+  .cipherArea{
+    resize: none;
+    overflow: hidden;
+  }
 
   /* ===== GAME 2: LOGIC GRID ===== */
   .logicWrap{
@@ -312,38 +378,39 @@
     align-items:center;
     margin-top: 10px;
   }
-  .logicHeader{ font-weight:900; color:#333; }
+  .logicHeader{ font-weight:900; color:#2b2418; }
   .logicRowLabel{ font-weight:900; padding:8px 0; }
   .logicSelect{
     width: 100%;
     padding: 10px;
-    border-radius: 10px;
-    border:1px solid #ccc;
+    border-radius: 12px;
+    border:1px solid rgba(80,60,30,0.25);
     font-weight:800;
-    background:#fff;
+    background: rgba(255,255,255,0.85);
     outline:none;
+    color:#2b2418;
   }
   .logicSelect:focus{
-    border-color:#111;
+    border-color:#2b2418;
     box-shadow: 0 0 0 2px rgba(0,0,0,0.10);
   }
   .hintList{
     margin-top:12px;
     padding-left: 16px;
-    color:#333;
+    color:#2b2418;
     line-height:1.45;
     font-size: 13px;
   }
   .warn{
     margin-top:10px;
     font-weight:900;
-    color:#c62828;
+    color:#9f1f1f;
     display:none;
   }
 
   /* ===== GAME 4: WORD SEARCH ===== */
   .wsHint{
-    color:#555;
+    color:#3b3326;
     font-size:13px;
     margin:6px 0 10px;
   }
@@ -369,8 +436,8 @@
   .wsCell{
     width: var(--cell);
     height: var(--cell);
-    background:#fff;
-    border:1px solid #cfcfcf;
+    background: rgba(255,255,255,0.78);
+    border:1px solid rgba(80,60,30,0.25);
     border-radius:10px;
     display:flex;
     align-items:center;
@@ -401,7 +468,7 @@
   }
   .wsWord.found{
     text-decoration:line-through;
-    color:#777;
+    color:#6b5e46;
   }
 
   @media(max-width: 820px){
@@ -411,6 +478,9 @@
   }
   @media(max-width:420px){
     .slot, .tile, .pTile{ width:40px; height:40px; font-size:18px; }
+    #game1 .cipherBox{ font-size:16px; letter-spacing:1px; }
+    #game1 .cipherInput{ min-height: 72px; padding: 16px 14px; border-radius: 14px; }
+    .card{ padding: 12px; }
   }
 
   /* =========================================================
@@ -605,7 +675,8 @@
 
     <div class="cipherBox" id="cipherText">IHOLFLWÀ QRQ È DYHUH WXWWR FLR FKH VL GHVLGHUD, PD GHVLGHUDUH FLR FKH VL KD</div>
 
-    <input class="cipherInput" id="cipherAnswer" placeholder="Inserisci la frase decodificata" />
+    <!-- ✅ textarea auto-grow (si estende verso il basso) -->
+    <textarea class="cipherInput cipherArea" id="cipherAnswer" rows="2" placeholder="Inserisci la frase decodificata"></textarea>
 
     <div class="btnRow">
       <button class="secondary" id="cipherClearBtn">Reset</button>
@@ -736,8 +807,26 @@
 
 <script>
 /* =========================================================
+   ✅ TAP HELPER (iOS): riduce "a volte i pulsanti non vanno"
+========================================================= */
+function onTap(el, handler){
+  if(!el) return;
+
+  let last = 0;
+  const fire = (e) => {
+    const now = Date.now();
+    if(now - last < 450) return; // anti-doppio evento (touchend + click)
+    last = now;
+    handler(e);
+  };
+
+  el.addEventListener("click", fire);
+  el.addEventListener("pointerup", fire);
+  el.addEventListener("touchend", fire, { passive: true });
+}
+
+/* =========================================================
    PUZZLE JSON (INCOLLATO)
-   (questo è il contenuto del tuo puzzle.json)
 ========================================================= */
 const PUZZLE = {
   "n": 12,
@@ -980,12 +1069,6 @@ function endAnaDrag(e){
   renderAnagram();
 }
 
-document.getElementById("anaResetBtn").addEventListener("click", () => {
-  anaSlots = Array(TOTAL_TILES).fill(null);
-  saveAnagram();
-  renderAnagram();
-});
-
 /* =========================================================
    GRAN FINALE: overlay + ingresso game4
 ========================================================= */
@@ -1005,32 +1088,6 @@ function runFinaleTransitionAndEnter(){
     showGame();
   }, 1150);
 }
-
-/* check anagram */
-document.getElementById("anaCheckBtn").addEventListener("click", () => {
-  if(!allPrizesCollected()){
-    anaMsgEl.textContent = "Non puoi ancora: devi prima ottenere tutti i tasselli.";
-    anaMsgEl.className = "msg bad";
-    return;
-  }
-  if(anaSlots.some(x => !x)){
-    anaMsgEl.textContent = "Completa tutti gli spazi prima di controllare.";
-    anaMsgEl.className = "msg bad";
-    return;
-  }
-  const guess = anaSlots.join("");
-  if(guess === FINAL_WORD){
-    anaMsgEl.textContent = "✅ Anagramma completato! Si sblocca il gran finale.";
-    anaMsgEl.className = "msg ok";
-
-    if(!isAnagramDone()) setAnagramDone();
-    renderSteps();
-    runFinaleTransitionAndEnter();
-  }else{
-    anaMsgEl.textContent = "❌ Non è corretto. Riprova.";
-    anaMsgEl.className = "msg bad";
-  }
-});
 
 /* =========================================================
    NAVIGATION (1,2,3,4) — 4 SOLO DOPO ANAGRAMMA
@@ -1068,6 +1125,11 @@ function renderSteps(){
     if(!canAccess(i)){
       step.classList.add("locked");
     }else{
+      // pointerup più affidabile su mobile
+      step.addEventListener("pointerup", () => {
+        currentGameIndex = i;
+        showGame();
+      });
       step.addEventListener("click", () => {
         currentGameIndex = i;
         showGame();
@@ -1115,44 +1177,22 @@ function restoreCurrentGame(){
 }
 
 /* =========================================================
-   RESET COMPLETO
-========================================================= */
-document.getElementById("resetAllBtn").addEventListener("click", () => {
-  localStorage.removeItem(STORAGE_PRIZE_COUNT);
-  localStorage.removeItem(STORAGE_GAME_DONE);
-  localStorage.removeItem(STORAGE_CURRENT_GAME);
-  localStorage.removeItem(STORAGE_ANAGRAM);
-  localStorage.removeItem(STORAGE_ANAGRAM_DONE);
-  localStorage.removeItem(STORAGE_FINAL_UNLOCKED);
-
-  anaSlots = Array(TOTAL_TILES).fill(null);
-  currentGameIndex = 0;
-
-  cipherAnswerEl.value = "";
-  cipherMsgEl.textContent = "";
-  cipherMsgEl.className = "msg";
-
-  resetLogic();
-
-  document.querySelectorAll("#cwGrid input").forEach(i => i.value = "");
-  cwBanner.textContent = "";
-  cwBanner.className = "msg";
-
-  wsResetInMemory();
-
-  document.body.classList.remove("finalOnly");
-
-  renderPrizes();
-  renderSteps();
-  showGame();
-});
-
-/* =========================================================
    GAME 1: CIPHER (1 tile)
 ========================================================= */
 const cipherAnswerEl = document.getElementById("cipherAnswer");
 const cipherMsgEl = document.getElementById("cipherMsg");
 const CIPHER_EXPECTED = "FELICITÀ NON È AVERE TUTTO CIÒ CHE SI DESIDERA, MA DESIDERARE CIÒ CHE SI HA";
+
+/* ✅ textarea auto-grow */
+function autoGrow(el){
+  if(!el) return;
+  el.style.height = "auto";
+  el.style.height = (el.scrollHeight) + "px";
+}
+if(cipherAnswerEl && cipherAnswerEl.tagName === "TEXTAREA"){
+  autoGrow(cipherAnswerEl);
+  cipherAnswerEl.addEventListener("input", () => autoGrow(cipherAnswerEl));
+}
 
 function normalizeCipherInput(s){
   return String(s || "")
@@ -1161,36 +1201,6 @@ function normalizeCipherInput(s){
     .replace(/\s+/g, " ")
     .trim();
 }
-
-document.getElementById("cipherClearBtn").addEventListener("click", () => {
-  cipherAnswerEl.value = "";
-  cipherMsgEl.textContent = "";
-  cipherMsgEl.className = "msg";
-});
-
-document.getElementById("cipherCheckBtn").addEventListener("click", () => {
-  const typed = normalizeCipherInput(cipherAnswerEl.value);
-  const expected = normalizeCipherInput(CIPHER_EXPECTED);
-
-  if(typed === expected){
-    const done = getGamesDone();
-    if(!done.game1){
-      addPrizes(1);
-      setGameDone("game1");
-    }
-    cipherMsgEl.textContent = `✅ Corretto! Hai ottenuto 1 tassello (${getPrizeCount()}/${TOTAL_TILES}).`;
-    cipherMsgEl.className = "msg ok";
-
-    renderPrizes();
-    if(allPrizesCollected()){
-      loadAnagram();
-      renderAnagram();
-    }
-  }else{
-    cipherMsgEl.textContent = "❌ Non è corretto.";
-    cipherMsgEl.className = "msg bad";
-  }
-});
 
 /* =========================================================
    GAME 2: LOGIC (2 tile)
@@ -1309,11 +1319,9 @@ function checkLogicSolution(){
   }
 }
 
-document.getElementById("logicClearBtn").addEventListener("click", resetLogic);
-document.getElementById("logicCheckBtn").addEventListener("click", checkLogicSolution);
-
 /* =========================================================
    GAME 3: CROSSWORD (4 tile)
+   (codice invariato rispetto al tuo, solo handlers tap dopo)
 ========================================================= */
 const cwGridEl = document.getElementById("cwGrid");
 const cwAcrossEl = document.getElementById("cwAcrossClues");
@@ -1531,21 +1539,6 @@ function cwValidateAll(){
     }
   }
 }
-
-document.getElementById("cwClearBtn").addEventListener("click", () => {
-  document.querySelectorAll("#cwGrid input").forEach(i => i.value = "");
-  cwBanner.textContent = "";
-  cwBanner.className = "msg";
-  cwValidateAll();
-});
-
-document.getElementById("cwCheckBtn").addEventListener("click", () => {
-  cwValidateAll();
-  if(cwFound.size !== CW_TOTAL){
-    cwBanner.textContent = "Non ancora: ci sono parole incomplete o errate.";
-    cwBanner.className = "msg bad";
-  }
-});
 
 /* =========================================================
    GAME 4: WORD SEARCH (DINAMICO da PUZZLE + validazione per celle)
@@ -1848,7 +1841,7 @@ function wsDrawPreviewCapsule(startRC, endRC){
   const cellPx = wsGetCellSizePx();
 
   wsPreviewShape = wsMakeCapsuleOutline(a.x, a.y, b.x, b.y, cellPx, {
-    stroke: "#9e9e9e",
+    stroke: "#7a6a52",
     opacity: "0.65",
     heightFactor: 0.78,
     lengthPadFactor: 0.45
@@ -1912,6 +1905,10 @@ function wsFinishSelection(){
   if(!wsIsDragging) return;
   wsIsDragging = false;
 
+  // ✅ release capture (iOS: evita stati strani dopo drag)
+  try{ wsGridWrapEl.releasePointerCapture?.(wsActivePointerId); } catch {}
+  wsActivePointerId = null;
+
   if(!wsStartPos || !wsCurrentPos || !wsLockedDir){
     wsClearPreview();
     wsStartPos = null; wsCurrentPos = null; wsLockedDir = null;
@@ -1936,6 +1933,120 @@ function wsFinishSelection(){
 
   wsStartPos = null; wsCurrentPos = null; wsLockedDir = null;
 }
+
+/* =========================================================
+   TAP HANDLERS (patchati)
+========================================================= */
+onTap(document.getElementById("cipherClearBtn"), () => {
+  cipherAnswerEl.value = "";
+  if(cipherAnswerEl.tagName === "TEXTAREA") autoGrow(cipherAnswerEl);
+  cipherMsgEl.textContent = "";
+  cipherMsgEl.className = "msg";
+});
+
+onTap(document.getElementById("cipherCheckBtn"), () => {
+  const typed = normalizeCipherInput(cipherAnswerEl.value);
+  const expected = normalizeCipherInput(CIPHER_EXPECTED);
+
+  if(typed === expected){
+    const done = getGamesDone();
+    if(!done.game1){
+      addPrizes(1);
+      setGameDone("game1");
+    }
+    cipherMsgEl.textContent = `✅ Corretto! Hai ottenuto 1 tassello (${getPrizeCount()}/${TOTAL_TILES}).`;
+    cipherMsgEl.className = "msg ok";
+
+    renderPrizes();
+    if(allPrizesCollected()){
+      loadAnagram();
+      renderAnagram();
+    }
+  }else{
+    cipherMsgEl.textContent = "❌ Non è corretto.";
+    cipherMsgEl.className = "msg bad";
+  }
+});
+
+onTap(document.getElementById("logicClearBtn"), resetLogic);
+onTap(document.getElementById("logicCheckBtn"), checkLogicSolution);
+
+onTap(document.getElementById("cwClearBtn"), () => {
+  document.querySelectorAll("#cwGrid input").forEach(i => i.value = "");
+  cwBanner.textContent = "";
+  cwBanner.className = "msg";
+  cwValidateAll();
+});
+
+onTap(document.getElementById("cwCheckBtn"), () => {
+  cwValidateAll();
+  if(cwFound.size !== CW_TOTAL){
+    cwBanner.textContent = "Non ancora: ci sono parole incomplete o errate.";
+    cwBanner.className = "msg bad";
+  }
+});
+
+onTap(document.getElementById("anaResetBtn"), () => {
+  anaSlots = Array(TOTAL_TILES).fill(null);
+  saveAnagram();
+  renderAnagram();
+});
+
+onTap(document.getElementById("anaCheckBtn"), () => {
+  if(!allPrizesCollected()){
+    anaMsgEl.textContent = "Non puoi ancora: devi prima ottenere tutti i tasselli.";
+    anaMsgEl.className = "msg bad";
+    return;
+  }
+  if(anaSlots.some(x => !x)){
+    anaMsgEl.textContent = "Completa tutti gli spazi prima di controllare.";
+    anaMsgEl.className = "msg bad";
+    return;
+  }
+  const guess = anaSlots.join("");
+  if(guess === FINAL_WORD){
+    anaMsgEl.textContent = "✅ Anagramma completato! Si sblocca il gran finale.";
+    anaMsgEl.className = "msg ok";
+
+    if(!isAnagramDone()) setAnagramDone();
+    renderSteps();
+    runFinaleTransitionAndEnter();
+  }else{
+    anaMsgEl.textContent = "❌ Non è corretto. Riprova.";
+    anaMsgEl.className = "msg bad";
+  }
+});
+
+onTap(document.getElementById("resetAllBtn"), () => {
+  localStorage.removeItem(STORAGE_PRIZE_COUNT);
+  localStorage.removeItem(STORAGE_GAME_DONE);
+  localStorage.removeItem(STORAGE_CURRENT_GAME);
+  localStorage.removeItem(STORAGE_ANAGRAM);
+  localStorage.removeItem(STORAGE_ANAGRAM_DONE);
+  localStorage.removeItem(STORAGE_FINAL_UNLOCKED);
+
+  anaSlots = Array(TOTAL_TILES).fill(null);
+  currentGameIndex = 0;
+
+  cipherAnswerEl.value = "";
+  if(cipherAnswerEl.tagName === "TEXTAREA") autoGrow(cipherAnswerEl);
+  cipherMsgEl.textContent = "";
+  cipherMsgEl.className = "msg";
+
+  resetLogic();
+
+  document.querySelectorAll("#cwGrid input").forEach(i => i.value = "");
+  cwBanner.textContent = "";
+  cwBanner.className = "msg";
+
+  wsResetInMemory();
+
+  document.body.classList.remove("finalOnly");
+
+  renderPrizes();
+  renderSteps();
+  showGame();
+});
 
 /* =========================================================
    INIT
