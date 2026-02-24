@@ -845,8 +845,7 @@
       <div class="pool" id="anaPool"></div>
 
       <div class="btnRow">
-        <button class="secondary" id="anaResetBtn">Reset anagramma</button>
-        <button id="anaCheckBtn">Controlla</button>
+<button id="anaCheckBtn">Controlla</button>
       </div>
       <div class="msg" id="anaMsg"></div>
     </div>
@@ -868,8 +867,7 @@
     <textarea class="cipherInput cipherArea" id="cipherAnswer" rows="2" placeholder="Inserisci la frase decodificata"></textarea>
 
     <div class="btnRow">
-      <button class="secondary" id="cipherClearBtn">Reset</button>
-      <button id="cipherCheckBtn">Controlla</button>
+<button id="cipherCheckBtn">Controlla</button>
     </div>
 
     <div class="msg" id="cipherMsg"></div>
@@ -912,8 +910,7 @@
       </ul>
 
       <div class="btnRow">
-        <button class="secondary" id="logicClearBtn">Reset</button>
-        <button id="logicCheckBtn">Controlla</button>
+<button id="logicCheckBtn">Controlla</button>
       </div>
 
       <div class="msg" id="logicMsg"></div>
@@ -932,8 +929,7 @@
         <div id="cwGrid" aria-label="Cruciverba"></div>
 
         <div class="btnRow">
-          <button class="secondary" id="cwClearBtn">Reset</button>
-          <button id="cwCheckBtn">Controlla</button>
+<button id="cwCheckBtn">Controlla</button>
         </div>
 
         <div class="msg" id="cwBanner"></div>
@@ -988,8 +984,7 @@
       <div class="finalAnaHint">Tocca le lettere per riempire gli spazi. Tocca uno spazio per liberarlo.</div>
       <div class="finalAnaPool" id="winPool" aria-label="Lettere disponibili"></div>
       <div class="btnRow" style="margin-top:10px;">
-        <button class="secondary" id="winResetBtn">Reset</button>
-        <button id="winCheckBtn">Controlla</button>
+<button id="winCheckBtn">Controlla</button>
       </div>
       <div class="msg" id="winMsg"></div>
 
@@ -2301,9 +2296,6 @@ function wsFinishSelection(){
 /* =========================================================
    TAP HANDLERS (patchati)
 ========================================================= */
-onTap(document.getElementById("cipherClearBtn"), () => {
-  cipherAnswerEl.value = "";
-  if(cipherAnswerEl.tagName === "TEXTAREA") autoGrow(cipherAnswerEl);
   cipherMsgEl.textContent = "";
   cipherMsgEl.className = "msg";
 });
@@ -2611,12 +2603,9 @@ function wsShowWinScreen(){
   wsBuildWinTiles();
   // setup anagram meta
   winResetAnagram();
-  const r = document.getElementById("winResetBtn");
   const c = document.getElementById("winCheckBtn");
-  if(r) r.onclick = winResetAnagram;
   if(c) c.onclick = winCheckAnagram;
-
-  wsStartFireworks();
+wsStartFireworks();
 
   // scroll to top of game4 quickly (mobile friendly)
   const top = g4.getBoundingClientRect().top + window.scrollY - 10;
