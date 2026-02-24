@@ -289,7 +289,7 @@
     background: rgba(255,255,255,0.85);
     text-align:center;
     font-weight:900;
-    font-size: calc(var(--cell) * 0.55);
+    font-size: clamp(16px, calc(var(--cell) * 0.55), 28px);
     outline:none;
     padding:0; margin:0;
     text-transform: uppercase;
@@ -1185,7 +1185,8 @@ function showGame(){
     wsSetResponsiveCellSize();
   }
 
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  const fast = window.matchMedia && window.matchMedia("(max-width: 820px)").matches;
+  window.scrollTo({ top: 0, behavior: fast ? "auto" : "smooth" });
 }
 
 function restoreCurrentGame(){
@@ -1363,6 +1364,76 @@ const cwAcrossEl = document.getElementById("cwAcrossClues");
 const cwDownEl = document.getElementById("cwDownClues");
 const cwProgressEl = document.getElementById("cwProgress");
 const cwBanner = document.getElementById("cwBanner");
+// ✅ Direzione di scrittura: A (orizzontale) / D (verticale)
+// Mobile-first: niente chip. La direzione viene scelta automaticamente quando tocchi una casella.
+// Se tocchi due volte la stessa casella rapidamente, alterna direzione.
+let cwDirMode = "A"; // default: orizzontale
+
+let cwLastTap = { r:null, c:null, t:0 };
+function cwToggleDir(){
+  cwDirMode = (cwDirMode === "A") ? "D" : "A";
+}
+
+// Trova la parola (in una direzione) che contiene la cella (r,c)
+ (in una direzione) che contiene la cella (r,c)
+function cwWordAt(r,c, dir){
+  const k = `${r},${c}`;
+  for(const w of CW_WORDS){
+    if(w.dir !== dir) continue;
+    const cells = cwWordCells(w);
+    if(cells.some(([rr,cc]) => `${rr},${cc}` === k)) return w;
+  }
+  return null;
+}
+
+function cwIsWordComplete(w){
+  if(!w) return true;
+  const typed = cwReadWord(w);
+  return (typed.length === w.answer.length && typed === w.answer);
+}
+
+// Scegli direzione: preferisci una parola non ancora completa nella cella.
+// Se entrambe incomplete, preferisci quella più lunga (più comoda da finire).
+function cwChooseDir(r,c){
+  const a = cwWordAt(r,c,"A");
+  const d = cwWordAt(r,c,"D");
+
+  const aOk = cwIsWordComplete(a);
+  const dOk = cwIsWordComplete(d);
+
+  if(a && !aOk && (!d || dOk)) return "A";
+  if(d && !dOk && (!a || aOk)) return "D";
+
+  if(a && d && !aOk && !dOk){
+    return (a.answer.length >= d.answer.length) ? "A" : "D";
+  }
+
+  // fallback: preferisci A se esiste, altrimenti D
+  if(a) return "A";
+  if(d) return "D";
+  return "A";
+}
+
+
+// Focus next/prev nella direzione scelta
+function cwFocusNextInDir(r,c, dir){
+  if(dir === "D"){
+    for(let rr=r+1; rr<CW_N; rr++) if(!cwIsBlock(rr,c)){ cwGetInput(rr,c)?.focus(); return; }
+  }else{
+    for(let cc=c+1; cc<CW_N; cc++) if(!cwIsBlock(r,cc)){ cwGetInput(r,cc)?.focus(); return; }
+  }
+  // fallback: vecchio comportamento
+  cwFocusNext(r,c);
+}
+function cwFocusPrevInDir(r,c, dir){
+  if(dir === "D"){
+    for(let rr=r-1; rr>=0; rr--) if(!cwIsBlock(rr,c)){ cwGetInput(rr,c)?.focus(); return; }
+  }else{
+    for(let cc=c-1; cc>=0; cc--) if(!cwIsBlock(r,cc)){ cwGetInput(r,cc)?.focus(); return; }
+  }
+  cwFocusPrev(r,c);
+}
+
 
 const CW_GRID = [
   "##EMPIRICO###",
@@ -1441,15 +1512,18 @@ function cwCellKey(r,c){ return `${r},${c}`; }
 
 function cwHighlightActive(r,c){
   cwClearActive();
-  const k = cwCellKey(r,c);
-  for(const w of CW_WORDS){
-    const cells = cwWordCells(w);
-    if(cells.some(([rr,cc]) => cwCellKey(rr,cc)===k)){
-      for(const [rr,cc] of cells){
-        const cellEl = document.querySelector(`#cwGrid .cwCell[data-r='${rr}'][data-c='${cc}']`);
-        if(cellEl) cellEl.classList.add("active");
-      }
-    }
+
+  // Preferisci la direzione corrente; se non esiste parola in quella direzione, prova l'altra
+  let w = cwWordAt(r,c,cwDirMode);
+  if(!w){
+    const other = (cwDirMode === "A") ? "D" : "A";
+    w = cwWordAt(r,c,other);
+  }
+  if(!w) return;
+
+  for(const [rr,cc] of cwWordCells(w)){
+    const cellEl = document.querySelector(`#cwGrid .cwCell[data-r='${rr}'][data-c='${cc}']`);
+    if(cellEl) cellEl.classList.add("active");
   }
 }
 
@@ -1517,19 +1591,36 @@ function cwBuildGrid(){
       input.inputMode = "text";
       input.dataset.r = r;
       input.dataset.c = c;
+      input.autocapitalize = "off";
+      input.autocorrect = "off";
+      input.spellcheck = false;
 
       input.addEventListener("input", (e) => {
         const v = (e.target.value || "").toUpperCase();
         e.target.value = v.replace(/[^A-Z]/g,"").slice(0,1);
         cwValidateAll();
-        if(e.target.value) cwFocusNext(r,c);
+        if(e.target.value) cwFocusNextInDir(r,c, cwDirMode);
       });
 
       input.addEventListener("keydown", (e) => {
-        if(e.key === "Backspace" && !e.target.value) cwFocusPrev(r,c);
+        if(e.key === "Backspace" && !e.target.value) cwFocusPrevInDir(r,c, cwDirMode);
       });
 
-      input.addEventListener("focus", () => cwHighlightActive(r,c));
+      input.addEventListener("focus", () => {
+        // auto direction on focus
+        cwDirMode = cwChooseDir(r,c);
+        cwHighlightActive(r,c);
+      });
+
+      // double-tap to toggle direction (no UI chip)
+      input.addEventListener("pointerup", () => {
+        const now = Date.now();
+        if(cwLastTap.r === r && cwLastTap.c === c && (now - cwLastTap.t) < 420){
+          cwToggleDir();
+          cwHighlightActive(r,c);
+        }
+        cwLastTap = { r, c, t: now };
+      });
 
       cell.appendChild(input);
       cwGridEl.appendChild(cell);
