@@ -816,6 +816,7 @@
 
   /* ===== FLOATING RESTART (sempre accessibile) ===== */
   .fabRestart{
+    display:block;
     position: fixed;
     right: 14px;
     bottom: 14px;
@@ -825,8 +826,8 @@
     font-weight: 900;
     display:none;
   }
-  body.finalOnly .fabRestart{ display:block; }
-  body.debugMode .fabRestart{ display:block; }
+  
+  
 
 </style>
 </head>
@@ -848,7 +849,7 @@
     <div class="prizeRow" id="prizeRow" aria-label="Premi"></div>
 
     <div class="btnRow">
-      <button type="button" class="secondary" id="resetAllBtn">Reset Gioco</button>
+      
     </div>
 
     <div class="msg" id="prizeMsg"></div>
@@ -1007,7 +1008,7 @@
       <div class="finalAnaPool" id="winPool" aria-label="Lettere disponibili"></div>
       <div class="btnRow" style="margin-top:10px;">
 <button type="button" id="winCheckBtn">Controlla</button>
-<button type="button" class="secondary" id="winRestartBtn">Ricomincia</button>
+
       </div>
       <div class="msg" id="winMsg"></div>
 
@@ -2639,7 +2640,7 @@ function wsShowWinScreen(){
   const c = document.getElementById("winCheckBtn");
   if(c) c.onclick = winCheckAnagram;
   const rs = document.getElementById("winRestartBtn");
-  if(rs) rs.onclick = () => document.getElementById("resetAllBtn")?.click();
+  if(rs) rs.onclick = () => hardResetGame();
 wsStartFireworks();
 
   // scroll to top of game4 quickly (mobile friendly)
@@ -2659,6 +2660,8 @@ function isWinFlag(){
   try{ const p = new URLSearchParams(location.search); return p.get("win") === "1"; }
   catch{ return false; }
 }
+
+function hardResetGame(){ try{ localStorage.clear(); }catch{} location.reload(); }
 
 function isDebugMode(){
   try{
@@ -2688,7 +2691,7 @@ function enableDebugMode(){
 }
 
 onTap(document.getElementById("fabRestart"), () => {
-  document.getElementById("resetAllBtn")?.click();
+  hardResetGame();
 });
 
 function init(){
