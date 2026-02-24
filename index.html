@@ -886,8 +886,10 @@
     </div>
   </div>
 
+  <div id="bootErr" class="card hidden" style="max-width:900px;margin:0 auto 14px;text-align:left;"><div style="font-weight:900;">⚠️ Errore di avvio JS</div><div class="sub" id="bootErrMsg"></div></div>
+
   <!-- ======= NAV (numeri) ======= -->
-  <div class="stepNav" id="stepNav"></div>
+  <div class="stepNav" id="stepNav"><div class="step active">1</div><div class="step locked">2</div><div class="step locked">3</div></div>
 
   <!-- ======= GAME 1 — Cifrario (1 tile) ======= -->
   <div class="card" id="game1">
@@ -2713,7 +2715,17 @@ function init(){
   }
 
 }
-init();
+try{
+  init();
+}catch(e){
+  console.error(e);
+  const b=document.getElementById('bootErr');
+  const m=document.getElementById('bootErrMsg');
+  if(b&&m){
+    b.classList.remove('hidden');
+    m.textContent = (e && e.message) ? e.message : String(e);
+  }
+}
 </script>
 
 <!-- FLOATING RESTART (visibile nel finale, anche senza vittoria) -->
